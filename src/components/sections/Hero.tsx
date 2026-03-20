@@ -11,7 +11,7 @@ export default function Hero({ hero }: { hero?: any }) {
     <section className="relative w-full h-[85vh] min-h-[500px] overflow-hidden bg-ag-bg flex flex-col justify-end pt-[152px]">
       {/* Background Image - Premium Sports Infrastructure */}
       <img
-        src={data.imageUrl && data.imageUrl.startsWith("http") ? data.imageUrl : "/images/hero_indian_arena.png"}
+        src={data.imageUrl || "/images/hero_indian_arena.png"}
         alt="Premium Indian Sports Infrastructure"
         className="absolute inset-0 w-full h-full object-cover object-top"
       />

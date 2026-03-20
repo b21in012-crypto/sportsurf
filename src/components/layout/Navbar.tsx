@@ -243,7 +243,7 @@ export default function Navbar() {
                   className="group flex flex-col items-center gap-1.5 px-4 py-2 min-w-fit hover:bg-ag-bg-alt transition-all duration-200 relative"
                 >
                   <div className="text-ag-text-muted group-hover:text-ag-primary transition-colors">
-                    <CategoryIcon name={cat.label} iconSvg={cat.iconSvg} />
+                    <CategoryIcon name={cat.label} iconSvg={cat.iconSvg} imageUrl={cat.navbarIconUrl || cat.imageUrl} />
                   </div>
                   <span className="text-[11px] font-body text-ag-text-muted group-hover:text-ag-primary transition-colors whitespace-nowrap tracking-wide">{cat.label}</span>
                   <span className="absolute bottom-0 left-0 right-0 h-0.5 bg-ag-primary scale-x-0 group-hover:scale-x-100 transition-transform duration-200" />
@@ -258,19 +258,11 @@ export default function Navbar() {
       {(!settings || settings.showTicker) && (
         <div className="hidden md:flex bg-ag-primary text-white items-center h-10 overflow-hidden border-t-[3px] border-ag-gold w-full">
           {/* "LATEST UPDATES" Label with Chevron cutout */}
-          <div className="relative bg-[#F4F5F7] text-ag-primary font-bold text-xs uppercase px-4 h-full flex items-center shrink-0 z-10 w-[200px]">
+          <div className="relative bg-[#F4F5F7] text-ag-primary font-body font-black text-[10px] tracking-widest uppercase px-6 h-full flex items-center shrink-0 z-10 pr-10" style={{ clipPath: "polygon(0 0, calc(100% - 15px) 0, 100% 50%, calc(100% - 15px) 100%, 0 100%)" }}>
             <div className="flex items-center gap-2">
-              <div className="border-[2px] border-ag-primary rounded-full p-[1px]">
-                <div className="w-1.5 h-1.5 bg-ag-primary rounded-full"></div>
-              </div>
+              <div className="w-2 h-2 bg-ag-primary rounded-full animate-pulse" />
               LATEST UPDATES
             </div>
-            <div
-              className="absolute right-0 top-0 w-0 h-0
-              border-t-[20px] border-t-transparent
-              border-b-[20px] border-b-transparent
-              border-r-[15px] border-r-ag-primary -mr-px"
-            />
           </div>
 
           {/* Marquee Content */}

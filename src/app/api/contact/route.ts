@@ -1,3 +1,5 @@
+export const dynamic = "force-dynamic";
+
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import nodemailer from "nodemailer";
@@ -84,3 +86,4 @@ export async function GET() {
     return new NextResponse(err.message || "Error fetching", { status: 500 });
   }
 }
+

@@ -1,3 +1,5 @@
+export const dynamic = "force-dynamic";
+
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { cookies } from "next/headers";
@@ -9,8 +11,12 @@ async function checkAdmin() {
 }
 
 export async function GET() {
-  const settings = await prisma.siteSettings.findFirst();
-  return NextResponse.json(settings || {});
+  try {
+    const settings = await prisma.siteSettings.findFirst();
+    return NextResponse.json(settings || {});
+  } catch {
+    return NextResponse.json({});
+  }
 }
 
 export async function PUT(req: NextRequest) {

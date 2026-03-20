@@ -1,3 +1,5 @@
+export const dynamic = "force-dynamic";
+
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { cookies } from "next/headers";
@@ -21,3 +23,4 @@ export async function POST(req: NextRequest) {
   const item = await prisma.navigationItem.create({ data });
   return NextResponse.json(item);
 }
+

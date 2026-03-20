@@ -1,3 +1,5 @@
+export const dynamic = "force-dynamic";
+
 import { NextRequest, NextResponse } from "next/server";
 import { verifyAdminPassword, generateAdminToken } from "@/lib/admin-auth";
 import { cookies } from "next/headers";
@@ -22,3 +24,4 @@ export async function DELETE() {
   (await cookies()).delete("admin_token");
   return NextResponse.json({ success: true });
 }
+

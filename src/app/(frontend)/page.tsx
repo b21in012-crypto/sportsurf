@@ -1,3 +1,5 @@
+export const dynamic = "force-dynamic";
+
 import { prisma } from "@/lib/prisma";
 import Hero from "@/components/sections/Hero";
 import MarqueeStrip from "@/components/sections/MarqueeStrip";
@@ -9,12 +11,23 @@ import Certifications from "@/components/sections/Certifications";
 import FinalCTA from "@/components/sections/FinalCTA";
 
 export default async function Home() {
-  const settings = await prisma.siteSettings.findFirst();
-  const categories = await prisma.homepageGridItem.findMany({ orderBy: { order: "asc" } });
-  const hero = await prisma.heroSection.findFirst({ where: { page: "home" } });
-  const projects = await prisma.project.findMany({ where: { isFeatured: true } });
-  const testimonials = await prisma.testimonial.findMany({ orderBy: { order: "asc" } });
-  const tickers = await prisma.tickerUpdate.findMany({ orderBy: { order: "asc" } });
+  let settings = null;
+  let categories: any[] = [];
+  let hero = null;
+  let projects: any[] = [];
+  let testimonials: any[] = [];
+  let tickers: any[] = [];
+
+  try {
+    settings = await prisma.siteSettings.findFirst();
+    categories = await prisma.homepageGridItem.findMany({ orderBy: { order: "asc" } });
+    hero = await prisma.heroSection.findFirst({ where: { page: "home" } });
+    projects = await prisma.project.findMany({ where: { isFeatured: true } });
+    testimonials = await prisma.testimonial.findMany({ orderBy: { order: "asc" } });
+    tickers = await prisma.tickerUpdate.findMany({ orderBy: { order: "asc" } });
+  } catch (e) {
+    console.error("DB not available during build, using defaults:", e);
+  }
 
   return (
     <div className="bg-ag-bg min-h-screen">

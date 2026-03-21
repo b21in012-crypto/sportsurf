@@ -16,7 +16,8 @@ export const dynamic = "force-dynamic";
 
 export default async function ProductDetailPage({ params }: { params: { slug: string } }) {
    const product: any = await prisma.product.findUnique({
-      where: { slug: params.slug }
+      where: { slug: params.slug },
+      include: { subCategory: true }
    });
 
    if (!product) {
@@ -106,7 +107,7 @@ export default async function ProductDetailPage({ params }: { params: { slug: st
                {/* RIGHT SIDE: Product Intro & Quick Actions */}
                <div className="flex flex-col justify-center">
                   <span className="text-sm font-bold text-ag-primary tracking-widest uppercase mb-3 block">
-                     {product.category.replace("-", " ")} Solutions
+                     {product.category.replace("-", " ")} {product.subCategory?.name ? ` > ${product.subCategory.name}` : ""}
                   </span>
                   <h1 className="text-4xl sm:text-5xl lg:text-5xl font-heading font-black text-ag-text mb-6 leading-[1.1] uppercase tracking-tighter">
                      {product.name}

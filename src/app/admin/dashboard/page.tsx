@@ -32,7 +32,10 @@ interface ProductItem {
   servicesTitle?: string;
   servicesSubtitle?: string;
   servicesJson?: string;
+  subCategoryId?: string;
+  subCategory?: { id: string; name: string };
 }
+interface SubCategoryItem { id: string; name: string; categoryId: string; order: number; category?: { label: string } }
 interface ProjectItem { id: string; name: string; city: string; state: string; surface: string; area: string; year: string; imageUrl?: string }
 interface TestimonialItem { id: string; name: string; institution: string; quote: string; avatar?: string }
 interface UserItem { id: string; name?: string; email?: string; role: string; emailVerified?: string }
@@ -119,6 +122,7 @@ export default function AdminDashboard() {
   const [homepageGridItems, setHomepageGridItems] = useState<{ id: string; label: string; description?: string; imageUrl?: string; href?: string; order: number }[]>([]);
   const [tickerItems, setTickerItems] = useState<{ id: string; text: string; order: number }[]>([]);
   const [products, setProducts] = useState<ProductItem[]>([]);
+  const [subCategories, setSubCategories] = useState<SubCategoryItem[]>([]);
   const [projects, setProjects] = useState<ProjectItem[]>([]);
   const [testimonials, setTestimonials] = useState<TestimonialItem[]>([]);
   const [users, setUsers] = useState<UserItem[]>([]);
@@ -158,6 +162,8 @@ export default function AdminDashboard() {
       if (tk) setTickerItems(tk);
       const p = await fetchData("/api/admin/products");
       if (p) setProducts(p);
+      const sc = await fetchData("/api/admin/subcategories");
+      if (sc) setSubCategories(sc);
       const pr = await fetchData("/api/admin/projects");
       if (pr) setProjects(pr);
       const t = await fetchData("/api/admin/testimonials");
@@ -327,6 +333,29 @@ export default function AdminDashboard() {
       }
     });
   }
+   async function saveSubCategory() {
+      const isEdit = !!formData.id;
+      const url = isEdit ? `/api/admin/subcategories/${formData.id}` : "/api/admin/subcategories";
+      const method = isEdit ? "PUT" : "POST";
+      const res = await fetch(url, { method, headers: { "Content-Type": "application/json" }, body: JSON.stringify(formData) });
+      if (res.ok) {
+         const sc = await fetchData("/api/admin/subcategories");
+         if (sc) setSubCategories(sc);
+         setModal(null);
+         showToast(isEdit ? "SubCategory updated!" : "SubCategory added!");
+      } else showToast("Failed to save", "error");
+   }
+
+   async function deleteSubCategory(id: string) {
+     setConfirmModal({
+       title: "Delete this sub-category?",
+       onConfirm: async () => {
+         const res = await fetch(`/api/admin/subcategories/${id}`, { method: "DELETE" });
+         if (res.ok) { setSubCategories(sc => sc.filter(x => x.id !== id)); showToast("SubCategory deleted!"); }
+         setConfirmModal(null);
+       }
+     });
+   }
 
    async function saveProduct() {
       // Basic JSON validation before saving
@@ -601,54 +630,112 @@ export default function AdminDashboard() {
 
         {/* PRODUCTS */}
         {tab === "products" && (
-          <div>
-            <div className="flex items-center justify-between mb-4">
-              <h2 className="text-2xl font-black text-slate-800">Products ({products.length})</h2>
-              <button onClick={() => openModal("product")} className="flex items-center gap-2 bg-amber-500 hover:bg-amber-400 text-white px-4 py-2 rounded-xl text-sm font-semibold transition">
-                <Plus size={16} /> Add Product
+          <div className="animate-in fade-in slide-in-from-bottom-4 duration-500">
+            <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-8">
+              <div>
+                <h2 className="text-3xl font-black text-slate-800 tracking-tight">Product Catalog</h2>
+                <p className="text-slate-500 text-sm mt-1 flex items-center gap-2">
+                  <Package size={14} className="text-amber-500" /> Managing {products.length} high-performance sports surfaces
+                </p>
+              </div>
+              <button
+                onClick={() => openModal("product")}
+                className="flex items-center justify-center gap-2 bg-slate-900 hover:bg-slate-800 text-white px-6 py-3 rounded-2xl text-sm font-bold transition shadow-xl shadow-slate-900/10 active:scale-95"
+              >
+                <Plus size={18} /> New Product
               </button>
             </div>
-            <div className="relative mb-4">
-              <Search size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
-              <input value={productSearch} onChange={e => setProductSearch(e.target.value)} placeholder="Search products..." className="w-full border border-slate-200 rounded-xl pl-9 pr-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-amber-400 focus:border-transparent" />
+
+            <div className="relative mb-8 group">
+              <Search size={20} className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 group-focus-within:text-amber-500 transition-colors" />
+              <input
+                value={productSearch}
+                onChange={e => setProductSearch(e.target.value)}
+                placeholder="Search by name, category, or subcategory..."
+                className="w-full bg-white border border-slate-200 rounded-2xl pl-12 pr-4 py-4 text-base shadow-sm focus:outline-none focus:ring-4 focus:ring-amber-500/10 focus:border-amber-400 transition-all placeholder:text-slate-400"
+              />
             </div>
-            <div className="bg-white rounded-2xl border border-slate-100 shadow-sm overflow-hidden">
-              <table className="w-full">
-                <thead className="bg-slate-50 border-b border-slate-100">
-                  <tr>
-                    <th className="text-left text-xs font-semibold uppercase tracking-wider text-slate-500 px-5 py-3">Product</th>
-                    <th className="text-left text-xs font-semibold uppercase tracking-wider text-slate-500 px-5 py-3">Category</th>
-                    <th className="text-left text-xs font-semibold uppercase tracking-wider text-slate-500 px-5 py-3">Slug</th>
-                    <th className="text-left text-xs font-semibold uppercase tracking-wider text-slate-500 px-5 py-3">Status</th>
-                    <th className="text-right text-xs font-semibold uppercase tracking-wider text-slate-500 px-5 py-3">Actions</th>
-                  </tr>
-                </thead>
-                <tbody className="divide-y divide-slate-50">
-                  {filteredProducts.map(p => (
-                    <tr key={p.id} className="hover:bg-slate-50/50 transition">
-                      <td className="px-5 py-3">
-                        <div className="flex items-center gap-3">
-                          {p.imageUrl && <img src={p.imageUrl} alt={p.name} className="w-10 h-10 rounded-lg object-cover border border-slate-200" onError={e => (e.currentTarget.style.display = "none")} />}
-                          <span className="text-sm font-semibold text-slate-800">{p.name}</span>
-                        </div>
-                      </td>
-                      <td className="px-5 py-3 text-sm text-slate-500">{p.category}</td>
-                      <td className="px-5 py-3 text-xs text-blue-600 font-mono">{p.slug}</td>
-                      <td className="px-5 py-3">
-                        <div className="flex gap-1">
-                          {p.isNew && <span className="text-xs bg-green-100 text-green-700 px-2 py-0.5 rounded-full font-semibold">New</span>}
-                          {p.isFeatured && <span className="text-xs bg-amber-100 text-amber-700 px-2 py-0.5 rounded-full font-semibold">Featured</span>}
-                        </div>
-                      </td>
-                      <td className="px-5 py-3 flex justify-end gap-2">
-                        <button onClick={() => openModal("product", p)} className="p-1.5 rounded-lg hover:bg-slate-100 transition text-slate-500"><Pencil size={14} /></button>
-                        <button onClick={() => deleteProduct(p.id)} className="p-1.5 rounded-lg hover:bg-red-50 transition text-red-500"><Trash2 size={14} /></button>
-                      </td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
+
+            <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
+              {products
+                .filter(p => !productSearch || [p.name, p.category, p.subCategory?.name].some(v => v?.toLowerCase().includes(productSearch.toLowerCase())))
+                .map(p => (
+                <div key={p.id} className="group bg-white rounded-3xl border border-slate-100 shadow-sm hover:shadow-2xl hover:shadow-slate-200/50 transition-all duration-300 overflow-hidden flex flex-col">
+                  {/* Image/Header area */}
+                  <div className="relative aspect-[16/10] bg-slate-100 overflow-hidden">
+                    {p.imageUrl ? (
+                      <img src={p.imageUrl} className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500" alt={p.name} />
+                    ) : (
+                      <div className="w-full h-full flex items-center justify-center text-slate-300">
+                        <Package size={48} strokeWidth={1} />
+                      </div>
+                    )}
+                    <div className="absolute top-4 left-4 flex flex-col gap-2">
+                      {p.isFeatured && <span className="bg-amber-400 text-amber-950 text-[10px] font-black px-2.5 py-1 rounded-full uppercase tracking-widest shadow-lg shadow-amber-400/20">Featured</span>}
+                      {p.isNew && <span className="bg-emerald-500 text-white text-[10px] font-black px-2.5 py-1 rounded-full uppercase tracking-widest shadow-lg shadow-emerald-500/20">New</span>}
+                    </div>
+                  </div>
+
+                  {/* Body area */}
+                  <div className="p-6 flex-1 flex flex-col">
+                    <div className="flex items-center gap-2 mb-3">
+                      <span className="text-[10px] font-bold text-amber-600 bg-amber-50 px-2 py-0.5 rounded-md uppercase tracking-wider">{p.category}</span>
+                      {p.subCategory?.name && (
+                        <>
+                          <ChevronDown size={10} className="text-slate-300 -rotate-90" />
+                          <span className="text-[10px] font-bold text-slate-500 bg-slate-50 px-2 py-0.5 rounded-md uppercase tracking-wider">{p.subCategory.name}</span>
+                        </>
+                      )}
+                    </div>
+                    <h3 className="text-lg font-bold text-slate-800 line-clamp-1 mb-2 group-hover:text-amber-600 transition-colors uppercase">{p.name}</h3>
+                    <p className="text-slate-500 text-sm line-clamp-2 leading-relaxed mb-4">{p.description}</p>
+
+                    <div className="mt-auto pt-4 border-t border-slate-50 flex items-center justify-between">
+                      <div className="flex items-center gap-1.5 text-slate-400">
+                        <ImageIcon size={14} />
+                        <span className="text-[10px] font-bold uppercase tracking-widest">
+                          {p.imagesJson ? JSON.parse(p.imagesJson).length : 1} Images
+                        </span>
+                      </div>
+                      <div className="flex items-center gap-1.5 text-slate-400">
+                        <Settings size={14} />
+                        <span className="text-[10px] font-bold uppercase tracking-widest">
+                          {p.specs ? JSON.parse(p.specs).length : 0} Specs
+                        </span>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Actions area */}
+                  <div className="p-4 bg-slate-50/50 border-t border-slate-100 flex gap-3">
+                    <button
+                      onClick={() => openModal("product", p)}
+                      className="flex-1 flex items-center justify-center gap-2 bg-white text-slate-700 border border-slate-200 py-2.5 rounded-xl text-xs font-bold hover:bg-slate-100 transition-colors active:scale-95"
+                    >
+                      <Pencil size={14} className="text-slate-400" /> Edit Details
+                    </button>
+                    <button
+                      onClick={() => deleteProduct(p.id)}
+                      className="p-2.5 text-red-500 border border-transparent hover:border-red-100 hover:bg-red-50 rounded-xl transition-all active:scale-90"
+                      title="Delete Product"
+                    >
+                      <Trash2 size={16} />
+                    </button>
+                  </div>
+                </div>
+              ))}
             </div>
+
+            {products.length === 0 && (
+              <div className="bg-white rounded-[2rem] border-2 border-dashed border-slate-100 p-20 text-center">
+                <div className="w-20 h-20 bg-slate-50 rounded-full flex items-center justify-center mx-auto mb-6 text-slate-300">
+                  <Package size={40} />
+                </div>
+                <h3 className="text-xl font-bold text-slate-800 mb-2">No products in catalog</h3>
+                <p className="text-slate-500 mb-8 max-w-xs mx-auto">Start by adding your first sports surface solution to showcase to your clients.</p>
+                <button onClick={() => openModal("product")} className="bg-amber-500 hover:bg-amber-400 text-white px-8 py-3 rounded-2xl font-bold transition">Add Now</button>
+              </div>
+            )}
           </div>
         )}
 
@@ -661,9 +748,10 @@ export default function AdminDashboard() {
                 <Plus size={16} /> Add Category
               </button>
             </div>
-            <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-4">
+            <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-4 mb-10">
               {categories.map(c => (
                 <div key={c.id} className="bg-white rounded-2xl p-4 border border-slate-100 shadow-sm flex items-center justify-between">
+                  {/* ... (category content) ... */}
                   <div className="flex items-center gap-3">
                     <div className="w-10 h-10 rounded-xl bg-slate-100 flex items-center justify-center text-slate-400 overflow-hidden">
                       {c.imageUrl ? <img src={c.imageUrl} alt="" className="w-full h-full object-cover" /> : <Palette size={18} />}
@@ -679,6 +767,28 @@ export default function AdminDashboard() {
                   </div>
                 </div>
               ))}
+            </div>
+
+            <div className="flex items-center justify-between mb-6">
+              <h2 className="text-2xl font-black text-slate-800">Sub Categories ({subCategories.length})</h2>
+              <button onClick={() => openModal("subcategory")} className="flex items-center gap-2 bg-amber-500 hover:bg-amber-400 text-white px-4 py-2 rounded-xl text-sm font-semibold transition">
+                <Plus size={16} /> Add SubCategory
+              </button>
+            </div>
+            <div className="bg-white rounded-2xl border border-slate-100 shadow-sm overflow-hidden divide-y divide-slate-50">
+              {subCategories.map(sc => (
+                <div key={sc.id} className="p-4 flex items-center justify-between hover:bg-slate-50 transition">
+                  <div className="flex items-baseline gap-2">
+                    <span className="font-bold text-slate-800 text-sm">{sc.name}</span>
+                    <span className="text-[10px] bg-slate-100 text-slate-500 px-2 py-0.5 rounded-full uppercase tracking-wider">{sc.category?.label || "No Category"}</span>
+                  </div>
+                  <div className="flex gap-1">
+                    <button onClick={() => openModal("subcategory", sc)} className="p-1.5 hover:bg-slate-100 rounded-lg text-slate-500"><Pencil size={14} /></button>
+                    <button onClick={() => deleteSubCategory(sc.id)} className="p-1.5 hover:bg-red-50 rounded-lg text-red-600"><Trash2 size={14} /></button>
+                  </div>
+                </div>
+              ))}
+              {subCategories.length === 0 && <div className="p-10 text-center text-slate-400 text-sm">No subcategories found.</div>}
             </div>
           </div>
         )}
@@ -1057,119 +1167,168 @@ export default function AdminDashboard() {
       )}
 
       {modal?.type === "product" && (
-        <Modal title={formData.id ? "Edit Product" : "Add Product"} onClose={() => setModal(null)}>
-          <div className="space-y-4">
-            <div className="grid grid-cols-2 gap-4">
-              <Field label="Name" name="name" value={formData.name || ""} onChange={handleFormChange} required />
-              <Field label="Slug" name="slug" value={formData.slug || ""} onChange={handleFormChange} required />
-            </div>
-            
-            <div className="grid grid-cols-2 gap-4 text-left">
-              <div className="space-y-1">
-                <label className="block text-xs font-semibold text-slate-600 uppercase tracking-wide mb-1.5">Category</label>
-                <select 
-                  name="category" 
-                  value={formData.category || ""} 
-                  onChange={handleFormChange} 
-                  className="w-full border border-slate-200 rounded-xl px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-amber-400"
-                  required
-                >
-                  <option value="">Select Category</option>
-                  {categories.map(c => <option key={c.id} value={c.label}>{c.label}</option>)}
-                </select>
+        <Modal title={formData.id ? "Edit Product Profile" : "Create New Product"} onClose={() => setModal(null)}>
+          <div className="space-y-8 pb-10">
+            {/* SECTION: PRIMARY DETAILS */}
+            <div className="bg-slate-50/50 p-5 rounded-3xl border border-slate-100 space-y-4">
+              <div className="flex items-center gap-2 text-slate-400 mb-2">
+                <LayoutDashboard size={14} />
+                <span className="text-[10px] font-black uppercase tracking-[0.2em]">Primary Details</span>
               </div>
-              <Field label="Subcategory (Sport Name)" name="shortSpec" value={formData.shortSpec || ""} onChange={handleFormChange} />
-            </div>
-
-            <Field label="Description" name="description" value={formData.description || ""} onChange={handleFormChange} required textarea />
-            
-            <div className="grid grid-cols-2 gap-4">
-              <Field label="Thumbnail Image URL" name="imageUrl" value={formData.imageUrl || ""} onChange={handleFormChange} />
-              <Field label="Card Height Class" name="heightClass" value={formData.heightClass || "h-[400px]"} onChange={handleFormChange} />
-            </div>
-
-            {/* Multiple Images Editor */}
-            <div className="space-y-2">
-              <label className="block text-xs font-semibold text-slate-600 uppercase tracking-wide">Image Gallery (JSON Array of URLs)</label>
-              <textarea 
-                name="imagesJson" 
-                value={formData.imagesJson || "[]"} 
-                onChange={handleFormChange} 
-                className="w-full border border-slate-200 rounded-xl px-3 py-2.5 text-xs font-mono h-20 focus:outline-none focus:ring-2 focus:ring-amber-400"
-                placeholder='["/img1.jpg", "/img2.jpg"]'
-              />
-            </div>
-
-            {/* Specs Editor */}
-            <div className="space-y-2">
-              <label className="block text-xs font-semibold text-slate-600 uppercase tracking-wide">Technical Specifications (JSON Array: {`{"label": "...", "value": "..."}`})</label>
-              <textarea 
-                name="specs" 
-                value={formData.specs || "[]"} 
-                onChange={handleFormChange} 
-                className="w-full border border-slate-200 rounded-xl px-3 py-2.5 text-xs font-mono h-24 focus:outline-none focus:ring-2 focus:ring-amber-400"
-                placeholder='[{"label": "Thickness", "value": "15mm"}]'
-              />
-            </div>
-
-            <div className="border-t border-slate-100 pt-4 mt-6">
-              <h4 className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] mb-4">Product Detail Page Content</h4>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <Field label="Product Name" name="name" value={formData.name || ""} onChange={handleFormChange} required />
+                <Field label="URL Slug (unique)" name="slug" value={formData.slug || ""} onChange={handleFormChange} required />
+              </div>
               
-              {/* Why Invest Section */}
-              <div className="space-y-2 mb-4">
-                <label className="block text-xs font-semibold text-slate-600 uppercase tracking-wide">Why Invest Points (JSON: {`[{"icon": "TrendingUp", "title": "...", "desc": "..."}]`})</label>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div className="space-y-1">
+                  <label className="block text-xs font-bold text-slate-600 uppercase tracking-widest mb-1.5 px-1">Category</label>
+                  <select 
+                    name="category" 
+                    value={formData.category || ""} 
+                    onChange={handleFormChange} 
+                    className="w-full bg-white border border-slate-200 rounded-2xl px-4 py-3 text-sm focus:outline-none focus:ring-4 focus:ring-amber-500/10 focus:border-amber-400 transition-all font-medium"
+                    required
+                  >
+                    <option value="">Select Category</option>
+                    {categories.map(c => <option key={c.id} value={c.label}>{c.label}</option>)}
+                  </select>
+                </div>
+                <div className="space-y-1">
+                  <label className="block text-xs font-bold text-slate-600 uppercase tracking-widest mb-1.5 px-1">Sub-Category</label>
+                  <select 
+                    name="subCategoryId" 
+                    value={formData.subCategoryId || ""} 
+                    onChange={handleFormChange} 
+                    className="w-full bg-white border border-slate-200 rounded-2xl px-4 py-3 text-sm focus:outline-none focus:ring-4 focus:ring-amber-500/10 focus:border-amber-400 transition-all font-medium"
+                  >
+                    <option value="">No Sub Category</option>
+                    {subCategories
+                      .filter(sc => !formData.category || sc.category?.label === formData.category)
+                      .map(sc => <option key={sc.id} value={sc.id}>{sc.name}</option>)
+                    }
+                  </select>
+                </div>
+              </div>
+              <Field label="Short Marketing Description" name="description" value={formData.description || ""} onChange={handleFormChange} required textarea />
+            </div>
+
+            {/* SECTION: MEDIA & ACTIONS */}
+            <div className="bg-slate-50/50 p-5 rounded-3xl border border-slate-100 space-y-4">
+              <div className="flex items-center gap-2 text-slate-400 mb-2">
+                <ImageIcon size={14} />
+                <span className="text-[10px] font-black uppercase tracking-[0.2em]">Media & Visuals</span>
+              </div>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <Field label="Thumbnail Cover (URL)" name="imageUrl" value={formData.imageUrl || ""} onChange={handleFormChange} />
+                <Field label="CSS Height Class (Default: h-[400px])" name="heightClass" value={formData.heightClass || "h-[400px]"} onChange={handleFormChange} />
+              </div>
+              <div>
+                <label className="block text-xs font-bold text-slate-600 uppercase tracking-widest mb-1.5 px-1">Image Gallery (JSON List of URLs)</label>
+                <textarea 
+                  name="imagesJson" 
+                  value={formData.imagesJson || "[]"} 
+                  onChange={handleFormChange} 
+                  className="w-full bg-white border border-slate-200 rounded-2xl px-4 py-3 text-xs font-mono h-24 focus:outline-none focus:ring-4 focus:ring-amber-500/10 focus:border-amber-400 transition-all"
+                  placeholder='["/img/p1.jpg", "/img/p2.jpg"]'
+                />
+              </div>
+            </div>
+
+            {/* SECTION: DATA STRUCTURES */}
+            <div className="bg-slate-50/50 p-5 rounded-3xl border border-slate-100 space-y-4">
+              <div className="flex items-center gap-2 text-slate-400 mb-2">
+                <Settings size={14} />
+                <span className="text-[10px] font-black uppercase tracking-[0.2em]">Technical Data (JSON)</span>
+              </div>
+              <div>
+                <label className="block text-xs font-bold text-slate-600 uppercase tracking-widest mb-1.5 px-1">Specifications (Label/Value Pairs)</label>
+                <textarea 
+                  name="specs" 
+                  value={formData.specs || "[]"} 
+                  onChange={handleFormChange} 
+                  className="w-full bg-white border border-slate-200 rounded-2xl px-4 py-3 text-xs font-mono h-32 focus:outline-none focus:ring-4 focus:ring-amber-500/10 focus:border-amber-400 transition-all"
+                  placeholder='[{"label": "Thickness", "value": "15mm"}]'
+                />
+              </div>
+              <div>
+                <label className="block text-xs font-bold text-slate-600 uppercase tracking-widest mb-1.5 px-1">"Why Invest" Points (Icon, Title, Desc)</label>
                 <textarea 
                   name="whyInvestJson" 
                   value={formData.whyInvestJson || "[]"} 
                   onChange={handleFormChange} 
-                  className="w-full border border-slate-200 rounded-xl px-3 py-2.5 text-xs font-mono h-32 focus:outline-none focus:ring-2 focus:ring-amber-400"
-                  placeholder='[{"icon": "TrendingUp", "title": "...", "desc": "..."}]'
+                  className="w-full bg-white border border-slate-200 rounded-2xl px-4 py-3 text-xs font-mono h-32 focus:outline-none focus:ring-4 focus:ring-amber-500/10 focus:border-amber-400 transition-all"
+                  placeholder='[{"icon": "TrendingUp", "title": "Durability", "desc": "Built to last"}]'
                 />
               </div>
+            </div>
 
-              {/* Why Choose Premium Section */}
-              <div className="space-y-2 mb-4">
-                <label className="block text-xs font-semibold text-slate-600 uppercase tracking-wide">Premium Benefits (JSON: {`["Benefit 1", "Benefit 2"]`})</label>
+            {/* SECTION: PREMIUM SERVICES */}
+            <div className="bg-slate-50/50 p-5 rounded-3xl border border-slate-100 space-y-4">
+              <div className="flex items-center gap-2 text-slate-400 mb-2">
+                <Star size={14} />
+                <span className="text-[10px] font-black uppercase tracking-[0.2em]">Product Detail Page: Rich Content</span>
+              </div>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <Field label="Services Title" name="servicesTitle" value={formData.servicesTitle || "Premium Services"} onChange={handleFormChange} />
+                <Field label="Premium Benefits (JSON Array: String[])" name="premiumBenefitsJson" value={formData.premiumBenefitsJson || "[]"} onChange={handleFormChange} textarea />
+              </div>
+              <Field label="Services Subtitle" name="servicesSubtitle" value={formData.servicesSubtitle || ""} onChange={handleFormChange} textarea />
+              <div>
+                <label className="block text-xs font-bold text-slate-600 uppercase tracking-widest mb-1.5 px-1">Service Items (JSON: Icon, Title, Desc)</label>
                 <textarea 
-                  name="premiumBenefitsJson" 
-                  value={formData.premiumBenefitsJson || "[]"} 
+                  name="servicesJson" 
+                  value={formData.servicesJson || "[]"} 
                   onChange={handleFormChange} 
-                  className="w-full border border-slate-200 rounded-xl px-3 py-2.5 text-xs font-mono h-20 focus:outline-none focus:ring-2 focus:ring-amber-400"
-                  placeholder='["Benefit 1", "Benefit 2"]'
+                  className="w-full bg-white border border-slate-200 rounded-2xl px-4 py-3 text-xs font-mono h-32 focus:outline-none focus:ring-4 focus:ring-amber-500/10 focus:border-amber-400 transition-all"
+                  placeholder='[{"icon": "PenTool", "title": "Expert Consultation"}]'
                 />
               </div>
+            </div>
 
-              {/* Services Section */}
-              <div className="bg-slate-50 p-4 rounded-2xl space-y-4 mb-4">
-                <h5 className="text-[10px] font-bold text-slate-500 uppercase tracking-widest">Services Section</h5>
-                <Field label="Services Section Title" name="servicesTitle" value={formData.servicesTitle || "Premium Services"} onChange={handleFormChange} />
-                <Field label="Services Section Subtitle" name="servicesSubtitle" value={formData.servicesSubtitle || ""} onChange={handleFormChange} textarea />
-                <div className="space-y-2">
-                  <label className="block text-[10px] font-semibold text-slate-500 uppercase tracking-wide">Service Cards (JSON: {`[{"icon": "PenTool", "title": "...", "desc": "..."}]`})</label>
-                  <textarea 
-                    name="servicesJson" 
-                    value={formData.servicesJson || "[]"} 
-                    onChange={handleFormChange} 
-                    className="w-full bg-white border border-slate-200 rounded-xl px-3 py-2.5 text-xs font-mono h-32 focus:outline-none focus:ring-2 focus:ring-amber-400"
-                    placeholder='[{"icon": "PenTool", "title": "...", "desc": "..."}]'
-                  />
+            {/* FLAGS */}
+            <div className="flex gap-4 p-5 bg-amber-50 rounded-3xl border border-amber-100">
+              <label className="flex items-center gap-3 cursor-pointer group">
+                <input type="checkbox" name="isNew" checked={!!formData.isNew} onChange={handleFormChange} className="w-5 h-5 accent-amber-500 rounded-lg" />
+                <div className="flex flex-col">
+                  <span className="text-sm font-bold text-slate-700">New Arrival</span>
+                  <span className="text-[10px] text-slate-500 uppercase font-black">Flash Badge</span>
                 </div>
-              </div>
-            </div>
-
-            <div className="flex gap-4 p-2 bg-slate-50 rounded-xl">
-              <label className="flex items-center gap-2 text-sm cursor-pointer">
-                <input type="checkbox" name="isNew" checked={!!formData.isNew} onChange={handleFormChange} className="w-4 h-4 accent-amber-500" />
-                <span className="text-slate-700 font-medium">New Arrival</span>
               </label>
-              <label className="flex items-center gap-2 text-sm cursor-pointer">
-                <input type="checkbox" name="isFeatured" checked={!!formData.isFeatured} onChange={handleFormChange} className="w-4 h-4 accent-amber-500" />
-                <span className="text-slate-700 font-medium">Featured</span>
+              <div className="w-[1px] bg-amber-200 my-1"></div>
+              <label className="flex items-center gap-3 cursor-pointer group">
+                <input type="checkbox" name="isFeatured" checked={!!formData.isFeatured} onChange={handleFormChange} className="w-5 h-5 accent-amber-500 rounded-lg" />
+                <div className="flex flex-col">
+                  <span className="text-sm font-bold text-slate-700">Featured</span>
+                  <span className="text-[10px] text-slate-500 uppercase font-black">Priority Placement</span>
+                </div>
               </label>
             </div>
 
-            <button onClick={saveProduct} className="w-full bg-amber-500 hover:bg-amber-400 text-white py-3 rounded-xl font-bold transition flex items-center justify-center gap-2 shadow-lg shadow-amber-500/20">
-              <Save size={16} /> Save Product & Details
+            <button 
+              onClick={saveProduct} 
+              className="group w-full bg-slate-900 hover:bg-black text-white py-5 rounded-[2rem] font-black text-lg transition-all flex items-center justify-center gap-3 shadow-2xl shadow-slate-900/20 active:scale-95 border-t border-slate-700/50"
+            >
+              <Save size={20} className="text-amber-500 group-hover:scale-125 transition-transform" /> {formData.id ? "UPDATE PRODUCT" : "PUBLISH PRODUCT"}
+            </button>
+          </div>
+        </Modal>
+      )}
+
+      {modal?.type === "subcategory" && (
+        <Modal title={formData.id ? "Edit SubCategory" : "Add SubCategory"} onClose={() => setModal(null)}>
+          <div className="space-y-4">
+            <Field label="Sub Category Name" name="name" value={formData.name || ""} onChange={handleFormChange} required />
+            <div>
+              <label className="block text-xs font-semibold text-slate-600 uppercase tracking-wide mb-1.5">Parent Category</label>
+              <select name="categoryId" value={formData.categoryId || ""} onChange={handleFormChange} className="w-full border border-slate-200 rounded-xl px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-amber-400">
+                <option value="">Select Parent Category</option>
+                {categories.map(c => <option key={c.id} value={c.id}>{c.label}</option>)}
+              </select>
+            </div>
+            <Field label="Display Order" name="order" value={formData.order || 0} onChange={handleFormChange} type="number" />
+            <button onClick={saveSubCategory} className="w-full bg-amber-500 hover:bg-amber-400 text-white py-3 rounded-xl font-bold transition flex items-center justify-center gap-2 shadow-lg shadow-amber-500/20">
+              <Save size={16} /> Save SubCategory
             </button>
           </div>
         </Modal>

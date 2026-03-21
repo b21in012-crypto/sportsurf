@@ -107,6 +107,18 @@ model Category {
   href          String?
   order         Int      @default(0)
   imageUrl      String?
+  subCategories SubCategory[]
+}
+
+model SubCategory {
+  id          String   @id @default(cuid())
+  name        String
+  categoryId  String
+  category    Category @relation(fields: [categoryId], references: [id], onDelete: Cascade)
+  order       Int      @default(0)
+  products    Product[]
+  
+  @@unique([name, categoryId])
 }
 
 model HomepageGridItem {
@@ -166,6 +178,9 @@ model Product {
   
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
+  
+  subCategoryId String?
+  subCategory   SubCategory? @relation(fields: [subCategoryId], references: [id])
 }
 
 // Projects

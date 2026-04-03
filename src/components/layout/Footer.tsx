@@ -29,13 +29,9 @@ export default function Footer() {
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8 mb-10">
           {/* Brand Col */}
           <div className="space-y-4">
-            <Link href="/" className="flex items-center gap-2.5">
-              <div className="w-8 h-8 bg-ag-gold flex items-center justify-center">
-                <span className="font-heading font-bold text-white text-sm italic">S</span>
-              </div>
-              <div>
-                <span className="font-heading font-bold text-white text-lg tracking-tighter block leading-none">{settings?.siteName || "SPORTSURF"}</span>
-                <span className="text-[9px] font-body text-white/50 tracking-[0.2em] uppercase">India</span>
+            <Link href="/" className="inline-block group">
+              <div className="w-14 h-14 bg-white p-1 rounded-xl flex items-center justify-center border border-white/10 overflow-hidden shadow-2xl shadow-white/5 transition-transform group-hover:scale-105 duration-500">
+                <img src="/logo.png" alt="SportSurf" className="w-full h-full object-contain" />
               </div>
             </Link>
             <p className="font-body text-white/60 text-sm leading-relaxed max-w-xs">

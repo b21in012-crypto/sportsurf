@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import Image from "next/image";
 import { Star, ArrowRight } from "lucide-react";
 
 interface ProductCardProps {
@@ -25,10 +26,11 @@ export default function ProductCard({ name, category, shortSpec, slug, image, he
            <span className="badge-category">{category}</span>
         </div>
         {image ? (
-          <img 
+          <Image 
             src={image} 
             alt={name} 
-            className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700" 
+            fill
+            className="object-cover group-hover:scale-110 transition-transform duration-700" 
           />
         ) : (
           <div className="w-full h-full bg-ag-border/30 rounded flex items-center justify-center text-ag-text-muted/20 font-heading font-black text-6xl italic group-hover:scale-105 transition-transform duration-500">

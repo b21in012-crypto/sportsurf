@@ -3,8 +3,9 @@
 import React, { useState, useMemo, useEffect, Suspense } from 'react';
 import { useParams } from 'next/navigation';
 import ProductCard from '@/components/ui/ProductCard';
-import { ChevronRight, ArrowRight } from 'lucide-react';
+import { ChevronRight, ArrowRight, Handshake, Globe, Users } from 'lucide-react';
 import Link from 'next/link';
+import Image from 'next/image';
 
 // Helper to slugify category names
 const slugify = (text: string) => text.toLowerCase().replace(/\s+/g, '-');
@@ -24,8 +25,8 @@ const MasterSplitHero = ({ title, description, baseImage, sports }: any) => {
           </div>
        </div>
        <div className="w-full md:w-[60%] relative h-full">
-          <img src={baseImage} alt={title} className="absolute inset-0 w-full h-full object-cover" />
-          <div className="absolute top-4 right-4 flex gap-2">
+          <Image src={baseImage} alt={title} fill className="object-cover" priority />
+          <div className="absolute top-4 right-4 flex gap-2 z-10">
              {sports.slice(0, 2).map((s: string) => (
                 <span key={s} className="bg-black/40 backdrop-blur-md text-white text-[7px] font-bold px-2 py-1 rounded-full uppercase tracking-widest border border-white/20">{s}</span>
              ))}
@@ -38,7 +39,7 @@ const MasterSplitHero = ({ title, description, baseImage, sports }: any) => {
 const MasterGalleryHero = ({ title, description, baseImage }: any) => {
   return (
     <div className="mb-12 relative h-[350px] md:h-[380px] rounded-3xl overflow-hidden shadow-md">
-       <img src={baseImage} className="absolute inset-0 w-full h-full object-cover" alt={title} />
+       <Image src={baseImage} fill className="object-cover" alt={title} priority />
        <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent" />
        <div className="absolute bottom-0 left-0 right-0 p-10 flex flex-col md:flex-row items-end justify-between gap-6">
           <div className="max-w-xl text-left">
@@ -61,8 +62,8 @@ const MasterMinimalHero = ({ title, description, baseImage, sports }: any) => {
            <button className="border-b border-ag-primary text-ag-primary font-black uppercase text-[9px] tracking-widest py-1">Explore Range</button>
        </div>
        <div className="relative rounded-3xl overflow-hidden border border-ag-border">
-          <img src={baseImage} className="absolute inset-0 w-full h-full object-cover" alt="Main" />
-          <div className="absolute top-4 right-4 bg-white/90 backdrop-blur-md px-3 py-1 rounded-full text-[7px] font-black uppercase tracking-[0.2em]">{sports[0] || 'Official'}</div>
+          <Image src={baseImage} fill className="object-cover" alt="Main" priority />
+          <div className="absolute top-4 right-4 bg-white/90 backdrop-blur-md px-3 py-1 rounded-full text-[7px] font-black uppercase tracking-[0.2em] z-10">{sports[0] || 'Official'}</div>
        </div>
     </div>
   );
@@ -72,8 +73,8 @@ const MasterAdventureHero = ({ title, description, baseImage, sports }: any) => 
   return (
     <div className="mb-12 grid grid-cols-1 md:grid-cols-12 gap-3 h-[350px] md:h-[380px]">
        <div className="md:col-span-8 relative rounded-3xl overflow-hidden border border-ag-border group">
-          <img src={baseImage} className="absolute inset-0 w-full h-full object-cover" alt={title} />
-          <div className="absolute top-0 left-0 right-0 p-8 flex flex-col justify-start">
+          <Image src={baseImage} fill className="object-cover" alt={title} priority />
+          <div className="absolute top-0 left-0 right-0 p-8 flex flex-col justify-start z-10">
              <div className="bg-white/95 text-ag-text px-6 py-2 w-fit rounded-full flex items-center gap-4 border border-white/20 shadow-xl">
                  <span className="text-[10px] font-black uppercase tracking-tighter">{title}</span>
                  <div className="w-1.5 h-1.5 rounded-full bg-ag-primary animate-pulse" />
@@ -90,8 +91,8 @@ const MasterAdventureHero = ({ title, description, baseImage, sports }: any) => 
             { img: "https://images.unsplash.com/photo-1504450758481-7338eba7524a?auto=format&fit=crop&q=80&w=400", label: sports[1] || 'Technical' }
           ].map((s, i) => (
              <div key={i} className="relative rounded-3xl overflow-hidden border border-ag-border bg-[#f8f9fa]">
-                <img src={s.img} className="absolute inset-0 w-full h-full object-cover opacity-60" alt={s.label} />
-                <div className="absolute inset-0 flex flex-col items-center justify-center">
+                <Image src={s.img} fill className="object-cover opacity-60" alt={s.label} />
+                <div className="absolute inset-0 flex flex-col items-center justify-center z-10">
                     <span className="text-ag-text font-black text-xl uppercase tracking-tighter italic">{s.label}</span>
                 </div>
              </div>
@@ -113,8 +114,8 @@ const MasterRosterHero = ({ title, description, baseImage, sports }: any) => {
           <p className="text-white/60 text-xs font-body max-w-sm">{description.substring(0, 100)}...</p>
        </div>
        <div className="w-full md:w-[40%] relative rounded-3xl overflow-hidden border border-ag-border shadow-xl">
-          <img src={baseImage} className="absolute inset-0 w-full h-full object-cover" alt="Elite" />
-          <div className="absolute bottom-0 left-0 right-0 bg-white p-6 border-t border-ag-border flex items-center justify-between">
+          <Image src={baseImage} fill className="object-cover" alt="Elite" priority />
+          <div className="absolute bottom-0 left-0 right-0 bg-white p-6 border-t border-ag-border flex items-center justify-between z-10">
               <div className="flex flex-col">
                   <span className="text-ag-text font-black text-sm uppercase">Official Roster</span>
                   <span className="text-ag-text-muted text-[8px] uppercase">{sports.slice(0, 3).join(' • ')}</span>
@@ -128,6 +129,84 @@ const MasterRosterHero = ({ title, description, baseImage, sports }: any) => {
   );
 };
 
+// --- COLLABORATION BLOCKS ---
+
+const CollabBlocks = ({ category, collaborations = [] }: { category: any; collaborations: any[] }) => {
+  const partners = useMemo(() => {
+    // Show partners linked to this category OR global partners
+    return collaborations
+      .filter(c => c.isGlobal || c.categoryId === category?.id)
+      .sort((a, b) => a.order - b.order)
+      .slice(0, 6); // Limit to 6 for the sidebar
+  }, [collaborations, category]);
+
+  return (
+    <div className="space-y-8 pt-8 border-t border-ag-border/50">
+      <div className="space-y-6">
+        <h3 className="font-heading font-bold text-xs uppercase tracking-[0.3em] text-ag-primary flex items-center gap-3">
+           <div className="w-2 h-0.5 bg-ag-gold" /> {category?.collabTitle || 'Collaborations'}
+        </h3>
+        
+        {/* Partnership Card */}
+        <div className="relative group overflow-hidden rounded-2xl bg-ag-text p-7 text-left">
+            <div className="absolute top-0 right-0 p-4 opacity-10">
+                <Handshake size={56} className="text-white" />
+            </div>
+            <div className="relative z-10">
+                <span className="text-ag-gold text-[10px] font-black uppercase tracking-[0.2em] mb-3 block">{category?.collabTitle || 'Partner With Us'}</span>
+                <h4 className="text-white text-xl font-heading font-black uppercase tracking-tighter leading-none mb-4 whitespace-pre-line">
+                    {category?.collabSubtitle || 'Join the SportSurf \n Elite Network'}
+                </h4>
+                <p className="text-white/50 text-[11px] font-body mb-5 leading-relaxed max-w-[200px]">
+                    {category?.collabDescription || 'We are looking for strategic partners in infrastructure and technology.'}
+                </p>
+                <Link href={category?.collabCtaLink || '/contact'} className="inline-flex items-center gap-2 bg-ag-gold text-white px-6 py-2.5 rounded-lg text-[10px] font-black uppercase tracking-widest hover:bg-white hover:text-ag-text transition-all">
+                    {category?.collabCtaText || 'Apply Now'} <ArrowRight size={12} />
+                </Link>
+            </div>
+            <div className="absolute bottom-0 right-0 w-32 h-32 bg-ag-gold/5 rounded-full -mb-16 -mr-16 blur-3xl transition-all group-hover:bg-ag-gold/10" />
+        </div>
+
+        {/* Logo Grid */}
+        {partners.length > 0 && (
+            <div className="space-y-4">
+                <div className="flex justify-between items-center px-1">
+                    <span className="text-[10px] font-bold text-ag-text-muted uppercase tracking-widest text-left">Global Partners</span>
+                    <span className="w-12 h-px bg-ag-border" />
+                </div>
+                <div className="grid grid-cols-2 gap-3">
+                    {partners.map((partner) => (
+                        <div key={partner.id} className="h-20 bg-white border border-ag-border rounded-xl flex items-center justify-center p-2 transition-all cursor-pointer group hover:border-ag-gold/50 overflow-hidden relative" title={partner.name}>
+                             <Image 
+                                src={partner.imageUrl} 
+                                alt={partner.name} 
+                                fill
+                                className="object-contain p-2"
+                             />
+                        </div>
+                    ))}
+                </div>
+            </div>
+        )}
+
+        {/* Small CTA - Managed via Settings if needed, but currently static here */}
+        <button className="w-full flex items-center justify-between p-5 bg-white border border-ag-border rounded-xl hover:bg-ag-bg-alt transition-all group">
+            <div className="flex items-center gap-4">
+                <div className="w-10 h-10 rounded-full bg-ag-bg flex items-center justify-center text-ag-primary group-hover:bg-ag-primary group-hover:text-white transition-all">
+                    <Globe size={18} />
+                </div>
+                <div className="text-left leading-snug">
+                    <p className="text-[11px] font-black text-ag-text uppercase tracking-tight">Dealer Program</p>
+                    <p className="text-[9px] text-ag-text-muted uppercase">24 Countries Ready</p>
+                </div>
+            </div>
+            <ChevronRight size={16} className="text-ag-border group-hover:text-ag-primary transition-all" />
+        </button>
+      </div>
+    </div>
+  );
+};
+
 // --- MAIN CONTENT ---
 
 function CategoryContent() {
@@ -136,6 +215,7 @@ function CategoryContent() {
   
   const [products, setProducts] = useState<any[]>([]);
   const [allCategories, setAllCategories] = useState<any[]>([]);
+  const [collaborations, setCollaborations] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [activeSport, setActiveSport] = useState("all");
 
@@ -143,10 +223,12 @@ function CategoryContent() {
     setLoading(true);
     Promise.all([
       fetch("/api/admin/products").then(res => res.json()),
-      fetch("/api/admin/categories").then(res => res.json())
-    ]).then(([productsData, categoriesData]) => {
+      fetch("/api/admin/categories").then(res => res.json()),
+      fetch("/api/admin/collaborations").then(res => res.json())
+    ]).then(([productsData, categoriesData, collabsData]) => {
       setProducts(productsData || []);
       setAllCategories(categoriesData || []);
+      setCollaborations(collabsData || []);
     }).catch(console.error).finally(() => setLoading(false));
   }, []);
 
@@ -296,6 +378,8 @@ function CategoryContent() {
                     </button>
                   ))}
                 </div>
+                
+                <CollabBlocks category={currentCategory} collaborations={collaborations} />
               </div>
             </div>
           </aside>

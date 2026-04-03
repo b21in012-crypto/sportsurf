@@ -11,40 +11,32 @@ async function checkAdmin() {
 export async function PUT(req: Request, { params }: { params: { id: string } }) {
   if (!(await checkAdmin())) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   try {
-    const { 
-      label, order, description, icon, iconSvg, navbarIconUrl, imageUrl, href,
-      collabTitle, collabSubtitle, collabDescription, collabCtaText, collabCtaLink 
-    } = await req.json();
-    const item = await prisma.category.update({
+    const data = await req.json();
+    const { name, imageUrl, description, href, categoryId, isGlobal, order } = data;
+    const item = await (prisma as any).collaboration.update({
       where: { id: params.id },
       data: {
-        label,
-        description,
-        icon,
-        iconSvg,
-        navbarIconUrl,
-        href,
-        order: parseInt(order) || 0,
+        name,
         imageUrl,
-        collabTitle,
-        collabSubtitle,
-        collabDescription,
-        collabCtaText,
-        collabCtaLink
+        description,
+        href,
+        categoryId: categoryId || null,
+        isGlobal: isGlobal ?? true,
+        order: parseInt(order) || 0
       }
     });
     return NextResponse.json(item);
   } catch (err: any) {
-    return new NextResponse(err.message || "Error updating", { status: 500 });
+    return NextResponse.json({ error: err.message || "Error updating" }, { status: 500 });
   }
 }
 
 export async function DELETE(req: Request, { params }: { params: { id: string } }) {
   if (!(await checkAdmin())) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   try {
-    const cat = await prisma.category.delete({ where: { id: params.id } });
-    return NextResponse.json(cat);
+    const item = await (prisma as any).collaboration.delete({ where: { id: params.id } });
+    return NextResponse.json(item);
   } catch (err: any) {
-    return new NextResponse(err.message || "Error deleting", { status: 500 });
+    return NextResponse.json({ error: err.message || "Error deleting" }, { status: 500 });
   }
 }

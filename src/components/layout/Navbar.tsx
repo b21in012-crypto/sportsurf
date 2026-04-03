@@ -89,38 +89,30 @@ export default function Navbar() {
   const pathname = usePathname();
 
   useEffect(() => {
-    fetch("/api/admin/settings")
-      .then(res => res.ok ? res.json() : null)
-      .then(data => setSettings(data))
-      .catch(console.error);
-
-    fetch("/api/admin/navigation")
-      .then(res => res.ok ? res.json() : [])
-      .then(data => setNavLinks(data.length ? data : [
+    Promise.all([
+      fetch("/api/admin/settings").then(res => res.ok ? res.json() : null),
+      fetch("/api/admin/navigation").then(res => res.ok ? res.json() : []),
+      fetch("/api/admin/categories").then(res => res.ok ? res.json() : []),
+      fetch("/api/admin/ticker").then(res => res.ok ? res.json() : [])
+    ]).then(([settingsData, navigationData, categoriesData, tickerData]) => {
+      setSettings(settingsData);
+      setNavLinks(navigationData.length ? navigationData : [
         { label: "Projects", href: "/projects" },
         { label: "About Us", href: "/about" },
         { label: "Contact", href: "/contact" }
-      ]))
-      .catch(console.error);
-
-    fetch("/api/admin/categories")
-      .then(res => res.ok ? res.json() : [])
-      .then(data => setCategories(data.length ? data : [
+      ]);
+      setCategories(categoriesData.length ? categoriesData : [
         { label: "Surface sports" }, { label: "Water sports" }, { label: "Small sports" }, { label: "Budget sports" },
         { label: "Sports academies" }, { label: "Play zones" }, { label: "Adventure sports games" },
         { label: "Challenge courses" }, { label: "Talent scout clubs" }
-      ]))
-      .catch(console.error);
-
-    fetch("/api/admin/ticker")
-      .then(res => res.ok ? res.json() : [])
-      .then(data => setTickerItems(data.length ? data : [
+      ]);
+      setTickerItems(tickerData.length ? tickerData : [
         { text: "Free site visit & consultation across India" },
         { text: "ISO 9001:2015 Certified" },
         { text: "FLAT 10% OFF on first project" },
         { text: "Premium Sports Surfaces & Equipment" }
-      ]))
-      .catch(console.error);
+      ]);
+    }).catch(console.error);
   }, []);
 
   return (
@@ -165,25 +157,19 @@ export default function Navbar() {
       </div>
 
       {/* Logo + Search + Actions row */}
-      <div className="border-b border-ag-border bg-white">
-        <div className="container-retail py-3 flex items-center gap-6">
+      <div className="border-b border-ag-border bg-white h-16 flex items-center shadow-sm">
+        <div className="container-retail flex items-center gap-6 h-full">
           {/* Logo */}
-          <Link href="/" className="flex items-center gap-2.5 shrink-0">
-            <div className="w-8 h-8 bg-ag-primary flex items-center justify-center">
-              <span className="font-heading font-bold text-white text-sm italic">S</span>
-            </div>
-            <div>
-              <span className="font-heading font-bold text-lg tracking-tighter text-ag-text block leading-none">SPORTSURF</span>
-              <span className="text-[9px] font-body text-ag-text-muted tracking-[0.2em] uppercase">India</span>
-            </div>
+          <Link href="/" className="shrink-0 h-full group flex items-center w-auto max-w-[280px]">
+             <img src="/logo.png" alt="SportSurf" className="h-[85%] w-auto object-contain transition-transform duration-300 group-hover:scale-105" style={{ clipPath: 'inset(0 0 0 2px)' }} />
           </Link>
-
+          
           {/* Search */}
-          <div className={`flex-1 relative max-w-2xl transition-all duration-200 ${searchFocused ? "shadow-lg" : ""}`}>
+          <div className={`flex-1 relative max-w-lg ml-6 transition-all duration-200 ${searchFocused ? "shadow-lg" : ""}`}>
             <input
               type="text"
-              placeholder="Search for surface sports, academies, play zones..."
-              className="search-input pl-10 pr-4 py-2.5 rounded-none border-ag-border"
+              placeholder="Search for surface sports..."
+              className="search-input pl-10 pr-4 py-2 rounded-none border-ag-border text-sm"
               onFocus={() => setSearchFocused(true)}
               onBlur={() => setSearchFocused(false)}
             />

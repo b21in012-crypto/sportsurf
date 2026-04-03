@@ -19,14 +19,22 @@ export default async function Home() {
   let tickers: any[] = [];
 
   try {
-    settings = await prisma.siteSettings.findFirst();
-    categories = await prisma.homepageGridItem.findMany({ orderBy: { order: "asc" } });
-    hero = await prisma.heroSection.findFirst({ where: { page: "home" } });
-    projects = await prisma.project.findMany({ where: { isFeatured: true } });
-    testimonials = await prisma.testimonial.findMany({ orderBy: { order: "asc" } });
-    tickers = await prisma.tickerUpdate.findMany({ orderBy: { order: "asc" } });
+    const [settingsData, categoriesData, heroData, projectsData, testimonialsData, tickersData] = await Promise.all([
+      prisma.siteSettings.findFirst(),
+      prisma.homepageGridItem.findMany({ orderBy: { order: "asc" } }),
+      prisma.heroSection.findFirst({ where: { page: "home" } }),
+      prisma.project.findMany({ where: { isFeatured: true } }),
+      prisma.testimonial.findMany({ orderBy: { order: "asc" } }),
+      prisma.tickerUpdate.findMany({ orderBy: { order: "asc" } })
+    ]);
+    settings = settingsData;
+    categories = categoriesData;
+    hero = heroData;
+    projects = projectsData;
+    testimonials = testimonialsData;
+    tickers = tickersData;
   } catch (e) {
-    console.error("DB not available during build, using defaults:", e);
+    console.error("DB not available:", e);
   }
 
   return (

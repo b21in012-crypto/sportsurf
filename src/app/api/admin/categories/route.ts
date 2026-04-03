@@ -25,7 +25,10 @@ export async function GET() {
 export async function POST(req: Request) {
   if (!(await checkAdmin())) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   try {
-    const { label, order, description, icon, iconSvg, navbarIconUrl, imageUrl, href } = await req.json();
+    const { 
+      label, order, description, icon, iconSvg, navbarIconUrl, imageUrl, href,
+      collabTitle, collabSubtitle, collabDescription, collabCtaText, collabCtaLink 
+    } = await req.json();
     const item = await prisma.category.create({
       data: {
         label,
@@ -35,7 +38,12 @@ export async function POST(req: Request) {
         navbarIconUrl,
         href,
         order: parseInt(order) || 0,
-        imageUrl
+        imageUrl,
+        collabTitle,
+        collabSubtitle,
+        collabDescription,
+        collabCtaText,
+        collabCtaLink
       }
     });
     return NextResponse.json(item);

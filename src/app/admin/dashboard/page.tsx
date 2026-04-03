@@ -4,12 +4,14 @@ import { useRouter } from "next/navigation";
 import {
   LayoutDashboard, Package, Briefcase, Star, Users, Settings,
   Map, Image as ImageIcon, LogOut, Plus, Pencil, Trash2, X, Save,
-  ChevronDown, ChevronUp, Search, CheckCircle, AlertCircle, Eye,
-  Palette, Type, Link2, Megaphone, Shield, Phone
+  ChevronDown, ChevronUp, ChevronRight, Search, CheckCircle, AlertCircle, Eye,
+  Palette, Type, Link2, Megaphone, Shield, Phone, Handshake, Upload,
+  XCircle, Loader2
 } from "lucide-react";
 
 // ---------- types ----------
-type Tab = "overview" | "hero" | "navigation" | "categories" | "homepage" | "products" | "projects" | "testimonials" | "users" | "settings" | "ticker" | "pages";
+type TabGroup = "overview" | "catalog" | "content" | "system";
+type Tab = "overview" | "products" | "categories" | "collaborations" | "home_page" | "inner_pages" | "projects" | "testimonials" | "navigation" | "settings" | "users";
 
 interface StatsData { userCount: number; productCount: number; projectCount: number; testimonialCount: number }
 interface HeroItem { id: string; page: string; title: string; subtitle?: string; imageUrl?: string; ctaText?: string; ctaLink?: string; textColor: string; overlayOpacity: number }
@@ -39,6 +41,17 @@ interface SubCategoryItem { id: string; name: string; categoryId: string; order:
 interface ProjectItem { id: string; name: string; city: string; state: string; surface: string; area: string; year: string; imageUrl?: string }
 interface TestimonialItem { id: string; name: string; institution: string; quote: string; avatar?: string }
 interface UserItem { id: string; name?: string; email?: string; role: string; emailVerified?: string }
+interface CollaborationItem { 
+  id: string; 
+  name: string; 
+  imageUrl: string; 
+  description?: string; 
+  href?: string; 
+  categoryId?: string; 
+  category?: { label: string }; 
+  isGlobal: boolean; 
+  order: number 
+}
 interface SiteSettings { 
   siteName: string; 
   primaryColor: string; 
@@ -80,30 +93,103 @@ function Toast({ msg, type }: { msg: string; type: "success" | "error" }) {
 
 function Modal({ title, onClose, children }: { title: string; onClose: () => void; children: React.ReactNode }) {
   return (
-    <div className="fixed inset-0 z-40 flex items-center justify-center bg-black/60 backdrop-blur-sm p-4">
-      <div className="bg-white rounded-2xl shadow-2xl w-full max-w-xl max-h-[90vh] overflow-y-auto">
-        <div className="flex items-center justify-between px-6 py-4 border-b border-slate-100">
-          <h3 className="font-bold text-slate-800 text-lg">{title}</h3>
-          <button onClick={onClose} className="p-1.5 rounded-lg hover:bg-slate-100 transition"><X size={18} /></button>
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/40 backdrop-blur-md p-4 animate-in fade-in duration-300">
+      <div className="bg-white rounded-[2.5rem] shadow-2xl w-full max-w-2xl max-h-[90vh] overflow-hidden flex flex-col border border-white/20">
+        <div className="flex items-center justify-between px-8 py-6 border-b border-slate-50">
+          <h3 className="font-black text-slate-800 text-xl tracking-tight">{title}</h3>
+          <button onClick={onClose} className="p-2.5 rounded-2xl hover:bg-slate-100 transition-all text-slate-400 hover:text-slate-600"><X size={20} /></button>
         </div>
-        <div className="p-6">{children}</div>
+        <div className="p-8 overflow-y-auto custom-scrollbar">{children}</div>
       </div>
     </div>
   );
 }
 
-function Field({ label, name, value, onChange, type = "text", required = false, textarea = false }: {
-  label: string; name: string; value: string | number; onChange: (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => void;
-  type?: string; required?: boolean; textarea?: boolean;
-}) {
-  const cls = "w-full border border-slate-200 rounded-xl px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-amber-400 focus:border-transparent";
+function Field({ label, name, value, onChange, placeholder, required = false, type = "text", textarea = false }: { label: string; name: string; value: any; onChange: (e: any) => void; placeholder?: string; required?: boolean; type?: string; textarea?: boolean }) {
   return (
-    <div>
-      <label className="block text-xs font-semibold text-slate-600 uppercase tracking-wide mb-1.5">{label}{required && " *"}</label>
-      {textarea
-        ? <textarea name={name} value={value as string} onChange={onChange} className={`${cls} h-24 resize-none`} required={required} />
-        : <input type={type} name={name} value={value} onChange={onChange} className={cls} required={required} />
-      }
+    <div className="space-y-1.5">
+      <label className="block text-[10px] font-black text-slate-500 uppercase tracking-[0.2em] mb-1 px-1">{label} {required && "*"}</label>
+      {textarea ? (
+        <textarea name={name} value={value} onChange={onChange} required={required} placeholder={placeholder} className="w-full bg-white border border-slate-200 rounded-2xl px-4 py-3.5 text-sm min-h-[120px] focus:outline-none focus:ring-4 focus:ring-amber-500/10 focus:border-amber-400 transition-all font-medium placeholder:text-slate-300" />
+      ) : (
+        <input type={type} name={name} value={value} onChange={onChange} required={required} placeholder={placeholder} className="w-full bg-white border border-slate-200 rounded-2xl px-4 py-3.5 text-sm focus:outline-none focus:ring-4 focus:ring-amber-500/10 focus:border-amber-400 transition-all font-medium placeholder:text-slate-300" />
+      )}
+    </div>
+  );
+}
+
+function ImageUpload({ label, value, onChange, multiple = false }: { label: string; value: string | string[]; onChange: (val: any) => void; multiple?: boolean }) {
+  const [uploading, setUploading] = useState(false);
+
+  async function handleFileChange(e: React.ChangeEvent<HTMLInputElement>) {
+    const files = e.target.files;
+    if (!files || files.length === 0) return;
+
+    setUploading(true);
+    try {
+        for (let i = 0; i < files.length; i++) {
+            const formData = new FormData();
+            formData.append("file", files[i]);
+            const res = await fetch("/api/admin/upload", { method: "POST", body: formData });
+            if (res.ok) {
+                const data = await res.json();
+                if (multiple) {
+                    const current = Array.isArray(value) ? value : (value ? [value] : []);
+                    onChange([...current, data.url]);
+                } else {
+                    onChange(data.url);
+                }
+            }
+        }
+    } catch (err) {
+        console.error("Upload failed", err);
+    } finally {
+        setUploading(false);
+    }
+  }
+
+  const images = multiple ? (Array.isArray(value) ? value : []) : (value ? [value as string] : []);
+
+  return (
+    <div className="space-y-3 py-2">
+      <label className="block text-[10px] font-black text-slate-500 uppercase tracking-[0.2em] px-1">{label}</label>
+      
+      <div className="flex flex-wrap gap-4">
+        {images.map((img, idx) => (
+          <div key={idx} className="relative w-28 h-28 rounded-3xl overflow-hidden group border border-slate-100 shadow-sm transition-transform hover:scale-105">
+            <img src={img} alt="" className="w-full h-full object-cover" />
+            <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
+                <button 
+                type="button"
+                onClick={() => {
+                    if (multiple) onChange((value as string[]).filter((_, i) => i !== idx));
+                    else onChange("");
+                }}
+                className="bg-white/90 p-2 rounded-full shadow-lg text-red-500 hover:bg-white scale-90 group-hover:scale-100 transition-all"
+                >
+                <Trash2 size={16} />
+                </button>
+            </div>
+          </div>
+        ))}
+        
+        <label className={`w-28 h-28 rounded-3xl border-2 border-dashed flex flex-col items-center justify-center cursor-pointer transition-all duration-300 ${uploading ? "bg-slate-50 border-slate-200" : "bg-white border-slate-200 hover:border-amber-400 hover:bg-amber-50 group hover:shadow-lg hover:shadow-amber-500/5"}`}>
+          {uploading ? (
+            <div className="flex flex-col items-center gap-2">
+                <Loader2 className="animate-spin text-amber-500" size={24} />
+                <span className="text-[10px] font-bold text-amber-600 uppercase tracking-tighter">Uploading...</span>
+            </div>
+          ) : (
+            <>
+              <div className="w-10 h-10 rounded-full bg-slate-50 flex items-center justify-center group-hover:bg-amber-100 group-hover:text-amber-600 transition-colors">
+                <Upload size={20} className="text-slate-400 group-hover:text-amber-600 group-hover:scale-110 transition-all" />
+              </div>
+              <span className="text-[10px] font-black text-slate-400 mt-2 uppercase tracking-[0.1em] group-hover:text-amber-600">Select File</span>
+            </>
+          )}
+          <input type="file" className="hidden" multiple={multiple} onChange={handleFileChange} accept="image/*" />
+        </label>
+      </div>
     </div>
   );
 }
@@ -127,6 +213,7 @@ export default function AdminDashboard() {
   const [testimonials, setTestimonials] = useState<TestimonialItem[]>([]);
   const [users, setUsers] = useState<UserItem[]>([]);
   const [settings, setSettings] = useState<SiteSettings>({ siteName: "SPORTSURF", primaryColor: "#f59e0b", secondaryColor: "#1e293b", fontHeading: "Inter", fontBody: "Inter" });
+  const [collaborations, setCollaborations] = useState<CollaborationItem[]>([]);
   const [userSearch, setUserSearch] = useState("");
   const [productSearch, setProductSearch] = useState("");
 
@@ -172,6 +259,8 @@ export default function AdminDashboard() {
       if (u) setUsers(u.users || []);
       const st = await fetchData("/api/admin/settings");
       if (st && st.id) setSettings(st);
+      const cl = await fetchData("/api/admin/collaborations");
+      if (cl) setCollaborations(cl);
     }
     load();
   }, [fetchData]);
@@ -464,25 +553,82 @@ export default function AdminDashboard() {
     });
   }
 
+  async function saveCollaboration() {
+    const isEdit = !!formData.id;
+    const url = isEdit ? `/api/admin/collaborations/${formData.id}` : "/api/admin/collaborations";
+    const method = isEdit ? "PUT" : "POST";
+    const res = await fetch(url, { method, headers: { "Content-Type": "application/json" }, body: JSON.stringify(formData) });
+    if (res.ok) {
+      const cl = await fetchData("/api/admin/collaborations");
+      if (cl) setCollaborations(cl);
+      setModal(null);
+      showToast(isEdit ? "Collaboration updated!" : "Collaboration added!");
+    } else showToast("Failed to save collaboration", "error");
+  }
+
+  async function deleteCollaboration(id: string) {
+    setConfirmModal({
+      title: "Delete this collaboration?",
+      onConfirm: async () => {
+        const res = await fetch(`/api/admin/collaborations/${id}`, { method: "DELETE" });
+        if (res.ok) { setCollaborations(cl => cl.filter(x => x.id !== id)); showToast("Collaboration deleted!"); }
+        setConfirmModal(null);
+      }
+    });
+  }
+
   async function saveSettings() {
     const res = await fetch("/api/admin/settings", { method: "PUT", headers: { "Content-Type": "application/json" }, body: JSON.stringify(settings) });
     if (res.ok) showToast("Settings saved!"); else showToast("Failed to save", "error");
   }
 
-  const tabs: { key: Tab; label: string; icon: React.ReactNode }[] = [
-    { key: "overview", label: "Overview", icon: <LayoutDashboard size={16} /> },
-    { key: "hero", label: "Hero Sections", icon: <ImageIcon size={16} /> },
-    { key: "navigation", label: "Navigation", icon: <Map size={16} /> },
-    { key: "categories", label: "Navbar Categories", icon: <Palette size={16} /> },
-    { key: "homepage", label: "Homepage Grid", icon: <LayoutDashboard size={16} /> },
-    { key: "products", label: "Products", icon: <Package size={16} /> },
-    { key: "projects", label: "Projects", icon: <Briefcase size={16} /> },
-    { key: "testimonials", label: "Testimonials", icon: <Star size={16} /> },
-    { key: "users", label: "Users", icon: <Users size={16} /> },
-    { key: "ticker", label: "Announcement Ticker", icon: <Megaphone size={16} /> },
-    { key: "pages", label: "Page Content", icon: <Pencil size={16} /> },
-    { key: "settings", label: "Site Settings", icon: <Settings size={16} /> },
+  const [activeGroup, setActiveGroup] = useState<TabGroup>("overview");
+
+  const sidebarGroups: { id: TabGroup; label: string; icon: React.ReactNode; tabs: { key: Tab; label: string; icon: React.ReactNode }[] }[] = [
+    { 
+      id: "overview", 
+      label: "Dashboard", 
+      icon: <LayoutDashboard size={18} />, 
+      tabs: [{ key: "overview", label: "Analytics Overview", icon: <LayoutDashboard size={16} /> }] 
+    },
+    { 
+      id: "catalog", 
+      label: "Inventory & Brands", 
+      icon: <Package size={18} />, 
+      tabs: [
+        { key: "products", label: "Product Catalog", icon: <Package size={16} /> },
+        { key: "categories", label: "Category Tree", icon: <Palette size={16} /> },
+        { key: "collaborations", label: "Brand Partners", icon: <Handshake size={16} /> },
+      ] 
+    },
+    { 
+      id: "content", 
+      label: "Page Management", 
+      icon: <ImageIcon size={18} />, 
+      tabs: [
+        { key: "home_page", label: "Home Page Editor", icon: <LayoutDashboard size={16} /> },
+        { key: "inner_pages", label: "Inner Page Heroes", icon: <Map size={16} /> },
+        { key: "projects", label: "Project Showcases", icon: <Briefcase size={16} /> },
+        { key: "testimonials", label: "Client Reviews", icon: <Star size={16} /> },
+      ] 
+    },
+    { 
+      id: "system", 
+      label: "Administrator", 
+      icon: <Settings size={18} />, 
+      tabs: [
+        { key: "navigation", label: "Menu & Navigation", icon: <Shield size={16} /> },
+        { key: "settings", label: "Site Config / SEO", icon: <Settings size={16} /> },
+        { key: "users", label: "Team Members", icon: <Users size={16} /> },
+      ] 
+    },
   ];
+
+  useEffect(() => {
+    // Sync activeGroup when tab changes
+    const group = sidebarGroups.find(g => g.tabs.some(t => t.key === tab));
+    if (group) setActiveGroup(group.id);
+  }, [tab]);
 
   const filteredUsers = users.filter(u =>
     !userSearch || u.name?.toLowerCase().includes(userSearch.toLowerCase()) || u.email?.toLowerCase().includes(userSearch.toLowerCase())
@@ -492,101 +638,216 @@ export default function AdminDashboard() {
   );
 
   return (
-    <div className="min-h-screen bg-slate-50 font-sans">
-      {/* Header */}
-      <header className="bg-white border-b border-slate-200 sticky top-0 z-30">
-        <div className="flex items-center justify-between px-6 py-3 max-w-[1600px] mx-auto">
-          <div className="flex items-center gap-3">
-            <div className="w-9 h-9 rounded-xl bg-amber-500 flex items-center justify-center">
-              <Shield size={18} className="text-white" />
-            </div>
-            <div>
-              <h1 className="font-black text-slate-800 text-base leading-none">SPORTSURF</h1>
-              <p className="text-[11px] text-slate-500 leading-none mt-0.5">Admin Dashboard</p>
-            </div>
+    <div className="flex h-screen bg-[#f1f5f9] font-sans selection:bg-amber-100 selection:text-amber-900">
+      {/* SIDEBAR - Professionally Structured like Magento/Shopify */}
+      <aside className="w-72 bg-[#0f172a] text-slate-400 flex flex-col shrink-0 border-r border-slate-800 shadow-2xl z-40">
+        <div className="p-6 border-b border-slate-800 flex items-center justify-center">
+          <div className="w-14 h-14 rounded-2xl bg-white p-2 flex items-center justify-center shadow-2xl shadow-white/5 transition-all duration-500 overflow-hidden">
+             <img src="/logo.png" alt="SportSurf" className="w-full h-full object-contain" />
           </div>
-          <button onClick={handleLogout} className="flex items-center gap-1.5 text-sm text-slate-600 hover:text-red-600 transition px-3 py-1.5 rounded-lg hover:bg-red-50">
-            <LogOut size={15} /> Logout
-          </button>
         </div>
 
-        {/* Tab Bar */}
-        <div className="flex gap-1 px-6 overflow-x-auto pb-px max-w-[1600px] mx-auto">
-          {tabs.map(t => (
-            <button
-              key={t.key}
-              onClick={() => setTab(t.key)}
-              className={`flex items-center gap-1.5 px-3 py-2.5 text-xs font-semibold whitespace-nowrap border-b-2 transition-all ${tab === t.key ? "border-amber-500 text-amber-600" : "border-transparent text-slate-500 hover:text-slate-800"}`}
-            >
-              {t.icon} {t.label}
-            </button>
-          ))}
-        </div>
-      </header>
-
-      {/* Content */}
-      <main className="max-w-[1600px] mx-auto p-6">
-
-        {/* OVERVIEW */}
-        {tab === "overview" && (
-          <div>
-            <h2 className="text-2xl font-black text-slate-800 mb-6">Dashboard Overview</h2>
-            <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8">
-              {[
-                { label: "Users", value: stats.userCount, icon: <Users size={24} />, color: "bg-blue-500" },
-                { label: "Products", value: stats.productCount, icon: <Package size={24} />, color: "bg-amber-500" },
-                { label: "Projects", value: stats.projectCount, icon: <Briefcase size={24} />, color: "bg-emerald-500" },
-                { label: "Testimonials", value: stats.testimonialCount, icon: <Star size={24} />, color: "bg-purple-500" },
-              ].map(stat => (
-                <div key={stat.label} className="bg-white rounded-2xl p-5 shadow-sm border border-slate-100 flex items-center gap-4">
-                  <div className={`${stat.color} w-12 h-12 rounded-xl flex items-center justify-center text-white flex-shrink-0`}>{stat.icon}</div>
-                  <div>
-                    <div className="text-2xl font-black text-slate-800">{stat.value}</div>
-                    <div className="text-xs text-slate-500 font-medium">{stat.label}</div>
-                  </div>
-                </div>
-              ))}
-            </div>
-            <div className="bg-white rounded-2xl p-6 border border-slate-100 shadow-sm">
-              <h3 className="font-bold text-slate-700 mb-3">Quick Links</h3>
-              <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
-                {tabs.filter(t => t.key !== "overview").map(t => (
-                  <button key={t.key} onClick={() => setTab(t.key)}
-                    className="flex items-center gap-2 px-3 py-2.5 rounded-xl border border-slate-200 text-sm text-slate-700 hover:bg-amber-50 hover:border-amber-200 transition text-left">
-                    <span className="text-amber-500">{t.icon}</span> {t.label}
+        <nav className="flex-1 overflow-y-auto py-6 px-4 space-y-8 scrollbar-hide">
+          {sidebarGroups.map(group => (
+            <div key={group.id} className="space-y-2">
+              <div className="flex items-center gap-2 px-3 mb-3">
+                <span className="text-[10px] font-black text-slate-500 uppercase tracking-[0.2em]">{group.label}</span>
+                <div className="flex-1 h-px bg-slate-800/50" />
+              </div>
+              <div className="space-y-1">
+                {group.tabs.map(item => (
+                  <button
+                    key={item.key}
+                    onClick={() => { setTab(item.key); setActiveGroup(group.id); }}
+                    className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-xl transition-all group ${tab === item.key ? "bg-amber-500 text-white shadow-lg shadow-amber-500/20 font-bold" : "hover:bg-slate-800/50 hover:text-slate-200"}`}
+                  >
+                    <span className={`${tab === item.key ? "text-white" : "text-slate-500 group-hover:text-amber-400"} transition-colors`}>{item.icon}</span>
+                    <span className="text-sm truncate">{item.label}</span>
+                    {tab === item.key && <div className="ml-auto w-1.5 h-1.5 rounded-full bg-white shadow-glow" />}
                   </button>
                 ))}
               </div>
             </div>
-          </div>
-        )}
+          ))}
+        </nav>
 
-        {/* HERO SECTIONS */}
-        {tab === "hero" && (
-          <div>
-            <div className="flex items-center justify-between mb-6">
-              <h2 className="text-2xl font-black text-slate-800">Hero Sections</h2>
-              <button onClick={() => openModal("hero")} className="flex items-center gap-2 bg-amber-500 hover:bg-amber-400 text-white px-4 py-2 rounded-xl text-sm font-semibold transition">
-                <Plus size={16} /> Add Hero
-              </button>
+        <div className="p-4 mt-auto border-t border-slate-800/50 bg-slate-900/50">
+            <button onClick={handleLogout} className="flex items-center gap-3 w-full p-3 rounded-xl text-slate-400 hover:bg-red-500/10 hover:text-red-400 transition-all font-semibold text-sm">
+              <LogOut size={16} /> Logout System
+            </button>
+        </div>
+      </aside>
+
+      {/* MAIN VIEWPORT */}
+      <div className="flex-1 flex flex-col relative min-w-0">
+        
+        {/* DYNAMIC TOP BAR */}
+        <header className="bg-white/80 backdrop-blur-md border-b border-slate-200 h-16 flex items-center justify-between px-8 sticky top-0 z-30">
+          <div className="flex items-center gap-4">
+             <div className="flex items-center gap-2 text-slate-400 text-xs font-medium">
+                <span>Dashboard</span>
+                <ChevronRight size={12} />
+                <span className="text-slate-800 font-bold uppercase tracking-widest">{sidebarGroups.find(g => g.id === activeGroup)?.label}</span>
+                <ChevronRight size={12} />
+                <span className="text-amber-600 font-bold">{sidebarGroups.flatMap(g => g.tabs).find(t => t.key === tab)?.label}</span>
+             </div>
+          </div>
+
+          <div className="flex items-center gap-6">
+            <div className="flex items-center gap-3 bg-slate-50 border border-slate-100 px-4 py-2 rounded-full">
+               <div className="w-6 h-6 rounded-full bg-amber-100 flex items-center justify-center text-[10px] font-bold text-amber-700">A</div>
+               <span className="text-xs font-bold text-slate-700">Administrator</span>
             </div>
-            <div className="grid md:grid-cols-2 gap-4">
-              {heroes.map(hero => (
-                <div key={hero.id} className="bg-white rounded-2xl border border-slate-100 shadow-sm overflow-hidden">
-                  {hero.imageUrl && <img src={hero.imageUrl} alt={hero.title} className="w-full h-36 object-cover" onError={e => (e.currentTarget.style.display = "none")} />}
-                  <div className="p-5">
-                    <span className="text-xs font-bold uppercase tracking-wider text-amber-500 bg-amber-50 px-2 py-0.5 rounded-lg">{hero.page}</span>
-                    <h3 className="font-bold text-slate-800 mt-2 leading-snug">{hero.title}</h3>
-                    {hero.subtitle && <p className="text-sm text-slate-500 mt-1">{hero.subtitle}</p>}
-                    <div className="flex gap-2 mt-4">
-                      <button onClick={() => openModal("hero", hero)} className="flex items-center gap-1.5 text-xs border border-slate-200 px-3 py-1.5 rounded-lg hover:bg-slate-50 transition"><Pencil size={12} /> Edit</button>
-                      <button onClick={() => deleteHero(hero.id)} className="flex items-center gap-1.5 text-xs border border-red-200 text-red-600 px-3 py-1.5 rounded-lg hover:bg-red-50 transition"><Trash2 size={12} /> Delete</button>
+          </div>
+        </header>
+
+        {/* CONTENT SCROLL AREA */}
+        <main className="flex-1 overflow-y-auto p-8 scroll-smooth">
+          
+          {/* DASHBOARD OVERVIEW */}
+          {tab === "overview" && (
+            <div className="animate-in fade-in slide-in-from-bottom-4 duration-500">
+               <div className="flex items-center justify-between mb-8">
+                  <div>
+                     <h2 className="text-3xl font-black text-slate-800 tracking-tight underline decoration-amber-500/30 decoration-8 underline-offset-4">Control Center</h2>
+                     <p className="text-sm text-slate-500 font-medium">Real-time snapshot of your sports ecosystem</p>
+                  </div>
+                  <div className="flex items-center gap-3 bg-white p-2 rounded-2xl border border-slate-100 shadow-sm">
+                     <div className="w-10 h-10 rounded-xl bg-emerald-50 flex items-center justify-center text-emerald-600">
+                        <Shield size={20} />
+                     </div>
+                     <div className="pr-4">
+                        <p className="text-[10px] font-black uppercase text-slate-400 leading-none">System Status</p>
+                        <p className="text-xs font-bold text-slate-700">Operational</p>
+                     </div>
+                  </div>
+               </div>
+
+               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-10">
+                  {[
+                    { label: "Inventory", value: stats.productCount, icon: <Package size={24} />, color: "bg-blue-500" },
+                    { label: "Partners", value: collaborations.length, icon: <Handshake size={24} />, color: "bg-amber-500" },
+                    { label: "Project Wins", value: stats.projectCount, icon: <Briefcase size={24} />, color: "bg-purple-500" },
+                    { label: "Verified Users", value: stats.userCount, icon: <Users size={24} />, color: "bg-emerald-500" },
+                  ].map((stat, i) => (
+                    <div key={i} className="bg-white rounded-[2rem] p-6 shadow-sm border border-slate-100 hover:shadow-xl transition-all group overflow-hidden relative">
+                       <div className="flex items-center gap-4 relative z-10">
+                          <div className={`w-14 h-14 ${stat.color} text-white rounded-2xl flex items-center justify-center shadow-lg shadow-current/20`}>
+                             {stat.icon}
+                          </div>
+                          <div>
+                             <p className="text-[10px] font-black uppercase tracking-widest text-slate-400 mb-1">{stat.label}</p>
+                             <p className="text-3xl font-black text-slate-800">{stat.value}</p>
+                          </div>
+                       </div>
+                    </div>
+                  ))}
+               </div>
+
+               <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 pb-10">
+                  <div className="lg:col-span-2 space-y-6">
+                     <div className="bg-slate-900 rounded-[2.5rem] p-8 text-white relative overflow-hidden shadow-2xl shadow-slate-900/30">
+                        <h3 className="text-2xl font-black mb-2 relative z-10">Welcome to Version 2.0</h3>
+                        <p className="text-slate-400 text-sm mb-8 max-w-sm relative z-10">Optimized for page-centric management and direct server-side image uploads.</p>
+                        <div className="flex gap-4 relative z-10">
+                           <button onClick={() => setTab("home_page")} className="bg-amber-500 hover:bg-amber-400 text-slate-900 px-6 py-3 rounded-2xl font-black text-xs uppercase tracking-widest transition-all">Edit Home Page</button>
+                           <button onClick={() => setTab("products")} className="bg-white/10 hover:bg-white/20 backdrop-blur-md text-white border border-white/10 px-6 py-3 rounded-2xl font-black text-xs uppercase tracking-widest transition-all">Catalog</button>
+                        </div>
+                     </div>
+                  </div>
+               </div>
+            </div>
+          )}
+
+        {/* HOME PAGE EDITOR */}
+        {tab === "home_page" && (
+          <div className="space-y-10 animate-in fade-in slide-in-from-bottom-4 duration-500">
+            {/* 1. Ticker Section */}
+            <section className="bg-white rounded-[2.5rem] p-8 shadow-sm border border-slate-100">
+               <div className="flex items-center justify-between mb-6">
+                 <div>
+                    <h3 className="text-xl font-black text-slate-800 tracking-tight">Announcement Ticker</h3>
+                    <p className="text-xs text-slate-500 font-medium">Scrolling text at the top of the header</p>
+                 </div>
+                 <button onClick={() => openModal("ticker")} className="flex items-center gap-2 bg-amber-500 hover:bg-amber-400 text-white px-4 py-2 rounded-xl text-xs font-bold transition shadow-lg shadow-amber-500/10">
+                   <Plus size={14} /> Add Update
+                 </button>
+               </div>
+               <div className="bg-slate-50 rounded-2xl border border-slate-100 overflow-hidden divide-y divide-slate-100">
+                 {tickerItems.map(tk => (
+                   <div key={tk.id} className="p-4 hover:bg-white transition flex items-center justify-between group">
+                     <div className="flex items-center gap-3">
+                        <div className="w-8 h-8 rounded-lg bg-amber-100 text-amber-600 flex items-center justify-center text-[10px] font-black">{tk.order}</div>
+                        <p className="font-bold text-slate-700 text-sm">{tk.text}</p>
+                     </div>
+                     <div className="flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+                       <button onClick={() => openModal("ticker", tk)} className="p-2 hover:bg-amber-50 rounded-lg text-slate-400 hover:text-amber-600 transition-colors"><Pencil size={14} /></button>
+                       <button onClick={() => deleteTicker(tk.id)} className="p-2 hover:bg-red-50 rounded-lg text-slate-400 hover:text-red-500 transition-colors"><Trash2 size={14} /></button>
+                     </div>
+                   </div>
+                 ))}
+                 {tickerItems.length === 0 && <div className="p-10 text-center text-slate-400 text-xs font-bold italic uppercase tracking-widest">No ticker announcements found.</div>}
+               </div>
+            </section>
+
+            {/* 2. Main Hero Section (Home) */}
+            <section className="bg-white rounded-[2.5rem] p-8 shadow-sm border border-slate-100">
+               <div className="flex items-center justify-between mb-6">
+                 <div>
+                    <h3 className="text-xl font-black text-slate-800 tracking-tight">Main Home Hero</h3>
+                    <p className="text-xs text-slate-500 font-medium">The primary banner visual for the landing page</p>
+                 </div>
+                 {!heroes.find(h => h.page === "home") && (
+                    <button onClick={() => openModal("hero", { page: "home" })} className="flex items-center gap-2 bg-slate-900 hover:bg-slate-800 text-white px-4 py-2 rounded-xl text-xs font-bold transition">
+                      <Plus size={14} /> Create Hero
+                    </button>
+                 )}
+               </div>
+               {heroes.filter(h => h.page === "home").map(hero => (
+                  <div key={hero.id} className="relative group rounded-3xl overflow-hidden border border-slate-100 shadow-xl">
+                    <img src={hero.imageUrl} alt="" className="w-full h-64 object-cover" />
+                    <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent flex flex-col justify-end p-8">
+                       <h4 className="text-white font-black text-3xl leading-tight max-w-lg mb-2">{hero.title}</h4>
+                       <p className="text-white/70 text-sm max-w-md mb-6">{hero.subtitle}</p>
+                       <div className="flex gap-3">
+                         <button onClick={() => openModal("hero", hero)} className="bg-white/10 hover:bg-white/20 backdrop-blur-md text-white border border-white/20 px-6 py-2.5 rounded-2xl text-[10px] font-black uppercase tracking-widest transition-all">Edit Content</button>
+                         <button onClick={() => deleteHero(hero.id)} className="bg-red-500/20 hover:bg-red-500/40 text-red-200 border border-red-500/20 px-4 py-2.5 rounded-2xl text-[10px] font-black transition-all"><Trash2 size={16} /></button>
+                       </div>
                     </div>
                   </div>
-                </div>
-              ))}
-              {heroes.length === 0 && <div className="col-span-2 text-center py-16 text-slate-400">No hero sections yet. Click "Add Hero" to create one.</div>}
-            </div>
+               ))}
+            </section>
+
+            {/* 3. Homepage Feature Grid */}
+            <section className="bg-white rounded-[2.5rem] p-8 shadow-sm border border-slate-100">
+               <div className="flex items-center justify-between mb-8">
+                 <div>
+                    <h3 className="text-xl font-black text-slate-800 tracking-tight">Feature Explore Grid</h3>
+                    <p className="text-xs text-slate-500 font-medium">The 4-block grid showing key surface categories on Home</p>
+                 </div>
+                 <button onClick={() => openModal("homepage")} className="flex items-center gap-2 border-2 border-slate-100 hover:border-amber-500 hover:bg-amber-50 text-slate-600 hover:text-amber-600 px-4 py-2 rounded-xl text-xs font-bold transition">
+                   <Plus size={14} /> Add Grid Card
+                 </button>
+               </div>
+               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+                 {homepageGridItems.map(item => (
+                   <div key={item.id} className="group flex flex-col bg-slate-50 rounded-3xl border border-slate-100 p-2 overflow-hidden transition-all hover:bg-white hover:shadow-2xl hover:shadow-slate-200/50">
+                      <div className="aspect-[4/3] rounded-2xl overflow-hidden relative mb-4">
+                        <img src={item.imageUrl} alt="" className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500" />
+                        <div className="absolute top-3 right-3 w-8 h-8 rounded-full bg-white/90 backdrop-blur-sm flex items-center justify-center text-[10px] font-black text-slate-800 shadow-sm border border-white/20">{item.order}</div>
+                      </div>
+                      <div className="px-4 pb-4 flex flex-col flex-1">
+                        <h5 className="font-black text-slate-800 text-sm mb-1 uppercase tracking-tighter">{item.label}</h5>
+                        <p className="text-[10px] text-slate-500 font-medium leading-relaxed mb-4 line-clamp-2">{item.description}</p>
+                        <div className="mt-auto flex gap-2">
+                           <button onClick={() => openModal("homepage", item)} className="flex-1 bg-white border border-slate-200 text-[10px] font-black py-2 rounded-xl hover:bg-slate-50 transition uppercase tracking-widest">Edit</button>
+                           <button onClick={() => deleteHomepageGridItem(item.id)} className="px-3 bg-red-50 text-red-500 rounded-xl hover:bg-red-500 hover:text-white transition-colors"><Trash2 size={14} /></button>
+                        </div>
+                      </div>
+                   </div>
+                 ))}
+               </div>
+            </section>
           </div>
         )}
 
@@ -739,114 +1000,134 @@ export default function AdminDashboard() {
           </div>
         )}
 
-        {/* CATEGORIES */}
+        {/* CATEGORY & STRUCTURE HUB */}
         {tab === "categories" && (
-          <div>
-            <div className="flex items-center justify-between mb-6">
-              <h2 className="text-2xl font-black text-slate-800">Categories ({categories.length})</h2>
-              <button onClick={() => openModal("category")} className="flex items-center gap-2 bg-amber-500 hover:bg-amber-400 text-white px-4 py-2 rounded-xl text-sm font-semibold transition">
-                <Plus size={16} /> Add Category
-              </button>
-            </div>
-            <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-4 mb-10">
-              {categories.map(c => (
-                <div key={c.id} className="bg-white rounded-2xl p-4 border border-slate-100 shadow-sm flex items-center justify-between">
-                  {/* ... (category content) ... */}
-                  <div className="flex items-center gap-3">
-                    <div className="w-10 h-10 rounded-xl bg-slate-100 flex items-center justify-center text-slate-400 overflow-hidden">
-                      {c.imageUrl ? <img src={c.imageUrl} alt="" className="w-full h-full object-cover" /> : <Palette size={18} />}
-                    </div>
-                    <div>
-                      <p className="font-semibold text-slate-800 text-sm">{c.label}</p>
-                      <p className="text-xs text-slate-400">Order: {c.order}</p>
-                    </div>
-                  </div>
-                  <div className="flex gap-1">
-                    <button onClick={() => openModal("category", c)} className="p-1.5 hover:bg-slate-100 rounded-lg text-slate-500"><Pencil size={14} /></button>
-                    <button onClick={() => deleteCategory(c.id)} className="p-1.5 hover:bg-red-50 rounded-lg text-red-600"><Trash2 size={14} /></button>
-                  </div>
-                </div>
-              ))}
+          <div className="animate-in fade-in slide-in-from-bottom-4 duration-500">
+            <div className="flex items-center justify-between mb-8">
+              <div>
+                 <h2 className="text-3xl font-black text-slate-800 tracking-tight">Logical Category Tree</h2>
+                 <p className="text-sm text-slate-500 font-medium">Define surface families and their underlying sub-types</p>
+              </div>
+              <div className="flex gap-2">
+                 <button onClick={() => openModal("subcategory")} className="flex items-center gap-2 bg-slate-100 hover:bg-slate-200 text-slate-700 px-5 py-2.5 rounded-2xl text-xs font-bold transition">
+                   <Plus size={16} /> New Sub-Type
+                 </button>
+                 <button onClick={() => openModal("category")} className="flex items-center gap-2 bg-amber-500 hover:bg-amber-400 text-white px-5 py-2.5 rounded-2xl text-xs font-bold transition shadow-lg shadow-amber-500/10">
+                   <Plus size={16} /> Add Main Category
+                 </button>
+              </div>
             </div>
 
-            <div className="flex items-center justify-between mb-6">
-              <h2 className="text-2xl font-black text-slate-800">Sub Categories ({subCategories.length})</h2>
-              <button onClick={() => openModal("subcategory")} className="flex items-center gap-2 bg-amber-500 hover:bg-amber-400 text-white px-4 py-2 rounded-xl text-sm font-semibold transition">
-                <Plus size={16} /> Add SubCategory
-              </button>
-            </div>
-            <div className="bg-white rounded-2xl border border-slate-100 shadow-sm overflow-hidden divide-y divide-slate-50">
-              {subCategories.map(sc => (
-                <div key={sc.id} className="p-4 flex items-center justify-between hover:bg-slate-50 transition">
-                  <div className="flex items-baseline gap-2">
-                    <span className="font-bold text-slate-800 text-sm">{sc.name}</span>
-                    <span className="text-[10px] bg-slate-100 text-slate-500 px-2 py-0.5 rounded-full uppercase tracking-wider">{sc.category?.label || "No Category"}</span>
-                  </div>
-                  <div className="flex gap-1">
-                    <button onClick={() => openModal("subcategory", sc)} className="p-1.5 hover:bg-slate-100 rounded-lg text-slate-500"><Pencil size={14} /></button>
-                    <button onClick={() => deleteSubCategory(sc.id)} className="p-1.5 hover:bg-red-50 rounded-lg text-red-600"><Trash2 size={14} /></button>
-                  </div>
-                </div>
-              ))}
-              {subCategories.length === 0 && <div className="p-10 text-center text-slate-400 text-sm">No subcategories found.</div>}
+            <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
+              {/* Category Sidebar List */}
+              <div className="lg:col-span-4 space-y-4">
+                 <div className="bg-white rounded-[2rem] p-6 shadow-sm border border-slate-100 h-fit">
+                    <h4 className="text-[10px] font-black uppercase tracking-widest text-slate-400 mb-4 px-2">Main Families</h4>
+                    <div className="space-y-2">
+                       {categories.map(c => (
+                         <div key={c.id} className="group flex items-center justify-between p-3 rounded-2xl hover:bg-slate-50 border border-transparent hover:border-slate-100 transition-all">
+                            <div className="flex items-center gap-3">
+                               <div className="w-10 h-10 rounded-xl bg-slate-100 overflow-hidden flex items-center justify-center">
+                                  {c.imageUrl ? <img src={c.imageUrl} className="w-full h-full object-cover" /> : <Palette size={16} className="text-slate-400" />}
+                               </div>
+                               <span className="font-bold text-slate-700 text-sm">{c.label}</span>
+                            </div>
+                            <div className="flex opacity-0 group-hover:opacity-100 transition-opacity">
+                               <button onClick={() => openModal("category", c)} className="p-2 text-slate-400 hover:text-amber-600"><Pencil size={14} /></button>
+                               <button onClick={() => deleteCategory(c.id)} className="p-2 text-slate-400 hover:text-red-500"><Trash2 size={14} /></button>
+                            </div>
+                         </div>
+                       ))}
+                    </div>
+                 </div>
+              </div>
+
+              {/* Sub-Category Tree View */}
+              <div className="lg:col-span-8">
+                 <div className="bg-white rounded-[2.5rem] p-8 shadow-sm border border-slate-100 min-h-[400px]">
+                    <div className="flex items-center justify-between mb-8">
+                       <h4 className="text-sm font-black uppercase tracking-[0.2em] text-slate-400">Hierarchy & Sub-Categories</h4>
+                       <div className="text-[10px] font-bold text-slate-400 bg-slate-50 px-3 py-1 rounded-full uppercase italic border border-slate-100">Drag & Drop soon</div>
+                    </div>
+                    
+                    <div className="space-y-8">
+                       {categories.map(cat => (
+                         <div key={cat.id} className="relative pl-8 border-l-2 border-slate-50 translate-x-2">
+                            <div className="absolute -left-2 top-0 w-4 h-4 rounded-full bg-amber-500 border-4 border-white shadow-sm shadow-amber-500/20"></div>
+                            <h5 className="font-black text-slate-800 text-xs uppercase tracking-tighter mb-4 flex items-center gap-2">
+                               {cat.label} 
+                               <span className="text-[9px] font-bold bg-slate-100 text-slate-400 px-2 rounded-full lowercase tracking-normal">Parent</span>
+                            </h5>
+                            <div className="grid grid-cols-1 md:grid-cols-2 gap-3 pb-8">
+                               {subCategories.filter(sc => sc.categoryId === cat.id).map(sc => (
+                                 <div key={sc.id} className="flex items-center justify-between bg-slate-50/50 p-4 rounded-2xl border border-slate-100 hover:bg-white hover:border-amber-200 group transition-all">
+                                    <div className="flex items-center gap-3">
+                                       <div className="w-1 h-1 rounded-full bg-slate-400 group-hover:bg-amber-400 transition-colors"></div>
+                                       <span className="text-sm font-bold text-slate-600 group-hover:text-slate-800 transition-colors">{sc.name}</span>
+                                    </div>
+                                    <div className="flex gap-1 opacity-0 group-hover:opacity-100 transition-all translate-x-2 group-hover:translate-x-0">
+                                       <button onClick={() => openModal("subcategory", sc)} className="p-2 text-slate-300 hover:text-amber-600 transition-colors"><Pencil size={12} /></button>
+                                       <button onClick={() => deleteSubCategory(sc.id)} className="p-2 text-slate-300 hover:text-red-500 transition-colors"><Trash2 size={12} /></button>
+                                    </div>
+                                 </div>
+                               ))}
+                               {subCategories.filter(sc => sc.categoryId === cat.id).length === 0 && (
+                                  <div className="col-span-full py-4 text-center border border-dashed border-slate-100 rounded-2xl text-[10px] text-slate-400 font-bold uppercase tracking-widest">No types defined yet</div>
+                               )}
+                            </div>
+                         </div>
+                       ))}
+                       {categories.length === 0 && (
+                         <div className="py-20 text-center">
+                            <Package size={48} className="mx-auto text-slate-100 mb-4" />
+                            <p className="text-slate-400 text-sm font-medium">Create a category to get started with the structure hub.</p>
+                         </div>
+                       )}
+                    </div>
+                 </div>
+              </div>
             </div>
           </div>
         )}
 
-        {/* HOMEPAGE GRID */}
-        {tab === "homepage" && (
-          <div>
-            <div className="flex items-center justify-between mb-6">
-              <h2 className="text-2xl font-black text-slate-800">Homepage Grid Items ({homepageGridItems.length})</h2>
-              <button onClick={() => openModal("homepage")} className="flex items-center gap-2 bg-amber-500 hover:bg-amber-400 text-white px-4 py-2 rounded-xl text-sm font-semibold transition">
-                <Plus size={16} /> Add Grid Card
+        {/* INNER PAGE HEROES */}
+        {tab === "inner_pages" && (
+          <div className="animate-in fade-in slide-in-from-bottom-4 duration-500">
+            <div className="flex items-center justify-between mb-8">
+              <div>
+                 <h2 className="text-3xl font-black text-slate-800 tracking-tight">Inner Page Heroes</h2>
+                 <p className="text-sm text-slate-500 font-medium">Manage banners for surfaces, about, and contact pages</p>
+              </div>
+              <button onClick={() => openModal("hero")} className="flex items-center gap-2 bg-amber-500 hover:bg-amber-400 text-white px-5 py-2.5 rounded-2xl text-xs font-bold transition shadow-lg shadow-amber-500/10">
+                <Plus size={16} /> Add New Hero
               </button>
             </div>
-            <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-4">
-              {homepageGridItems.map(c => (
-                <div key={c.id} className="bg-white rounded-2xl p-4 border border-slate-100 shadow-sm flex items-center justify-between">
-                  <div className="flex items-center gap-3">
-                    <div className="w-10 h-10 rounded-xl bg-slate-100 flex items-center justify-center text-slate-400 overflow-hidden">
-                      {c.imageUrl ? <img src={c.imageUrl} alt="" className="w-full h-full object-cover" /> : <Palette size={18} />}
-                    </div>
-                    <div>
-                      <p className="font-semibold text-slate-800 text-sm">{c.label}</p>
-                      <p className="text-xs text-slate-400">Order: {c.order}</p>
+            <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
+              {heroes.filter(h => h.page !== "home").map(hero => (
+                <div key={hero.id} className="group bg-white rounded-[2rem] border border-slate-100 shadow-sm hover:shadow-2xl transition-all duration-300 overflow-hidden flex flex-col">
+                  <div className="relative h-40 bg-slate-100">
+                    {hero.imageUrl && <img src={hero.imageUrl} alt={hero.title} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700" />}
+                    <div className="absolute top-4 left-4">
+                       <span className="bg-amber-100/90 backdrop-blur-sm text-amber-700 text-[10px] font-black px-3 py-1 rounded-full uppercase tracking-widest">{hero.page} Page</span>
                     </div>
                   </div>
-                  <div className="flex gap-1">
-                    <button onClick={() => openModal("homepage", c)} className="p-1.5 hover:bg-slate-100 rounded-lg text-slate-500"><Pencil size={14} /></button>
-                    <button onClick={() => deleteHomepageGridItem(c.id)} className="p-1.5 hover:bg-red-50 rounded-lg text-red-600"><Trash2 size={14} /></button>
+                  <div className="p-6 flex-1 flex flex-col">
+                    <h3 className="font-black text-slate-800 text-sm leading-snug mb-1 uppercase truncate">{hero.title}</h3>
+                    <p className="text-[11px] text-slate-500 line-clamp-2 leading-relaxed mb-4">{hero.subtitle}</p>
+                    <div className="mt-auto pt-4 border-t border-slate-50 flex gap-2">
+                       <button onClick={() => openModal("hero", hero)} className="flex-1 bg-slate-50 hover:bg-slate-100 text-slate-600 py-2 rounded-xl text-[10px] font-bold transition uppercase tracking-widest">Configure</button>
+                       <button onClick={() => deleteHero(hero.id)} className="px-3 bg-red-50 text-red-500 rounded-xl hover:bg-red-500 hover:text-white transition-colors"><Trash2 size={14} /></button>
+                    </div>
                   </div>
                 </div>
               ))}
-            </div>
-          </div>
-        )}
-
-        {/* TICKER UPDATES */}
-        {tab === "ticker" && (
-          <div>
-            <div className="flex items-center justify-between mb-6">
-              <h2 className="text-2xl font-black text-slate-800">Announcement Ticker ({tickerItems.length})</h2>
-              <button onClick={() => openModal("ticker")} className="flex items-center gap-2 bg-amber-500 hover:bg-amber-400 text-white px-4 py-2 rounded-xl text-sm font-semibold transition">
-                <Plus size={16} /> Add Update
-              </button>
-            </div>
-            <div className="bg-white rounded-2xl border border-slate-100 shadow-sm overflow-hidden flex flex-col divide-y divide-slate-50">
-              {tickerItems.map(tk => (
-                <div key={tk.id} className="p-4 hover:bg-slate-50/50 transition flex items-center justify-between">
-                  <div>
-                    <p className="font-semibold text-slate-800 text-sm">{tk.text}</p>
-                    <p className="text-xs text-slate-400">Order: {tk.order}</p>
-                  </div>
-                  <div className="flex gap-2">
-                    <button onClick={() => openModal("ticker", tk)} className="p-1.5 hover:bg-slate-100 rounded-lg text-slate-500"><Pencil size={14} /></button>
-                    <button onClick={() => deleteTicker(tk.id)} className="p-1.5 hover:bg-red-50 rounded-lg text-red-600"><Trash2 size={14} /></button>
-                  </div>
+              {heroes.filter(h => h.page !== "home").length === 0 && (
+                <div className="col-span-full py-20 text-center bg-white rounded-[2.5rem] border-2 border-dashed border-slate-100">
+                   <ImageIcon size={48} className="mx-auto text-slate-100 mb-4" />
+                   <h3 className="text-lg font-bold text-slate-800">No inner page heroes found</h3>
+                   <p className="text-slate-500 text-xs max-w-xs mx-auto">Create beautiful banner sections for your surfaces and about pages.</p>
                 </div>
-              ))}
-              {tickerItems.length === 0 && <div className="p-12 text-center text-slate-400 text-sm">No ticker items found.</div>}
+              )}
             </div>
           </div>
         )}
@@ -1041,48 +1322,70 @@ export default function AdminDashboard() {
             </div>
           </div>
         )}
-        {tab === "pages" && (
-          <div>
-            <h2 className="text-2xl font-black text-slate-800 mb-6">About & Contact Page Content</h2>
-            <div className="bg-white rounded-2xl border border-slate-100 shadow-sm p-8 max-w-4xl space-y-10">
-              
-              {/* About Page */}
-              <div className="space-y-6">
-                <h3 className="text-lg font-bold text-slate-800 border-b border-slate-100 pb-2 flex items-center gap-2">
-                  <Star className="text-amber-500" size={18} /> About Page: Hero & Story
-                </h3>
-                <Field label="Hero Story Text" name="aboutText" value={settings.aboutText || ""} onChange={e => setSettings(s => ({ ...s, aboutText: e.target.value }))} textarea />
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  <Field label="Origin Section Title" name="aboutOriginTitle" value={settings.aboutOriginTitle || ""} onChange={e => setSettings(s => ({ ...s, aboutOriginTitle: e.target.value }))} />
-                  <Field label="Origin Section Description" name="aboutOriginText" value={settings.aboutOriginText || ""} onChange={e => setSettings(s => ({ ...s, aboutOriginText: e.target.value }))} textarea />
-                </div>
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4 pt-4">
-                  <Field label="Values Cards (JSON: title, icon, text)" name="valuesJson" value={settings.valuesJson || "[]"} onChange={e => setSettings(s => ({ ...s, valuesJson: e.target.value }))} textarea />
-                  <Field label="History Timeline (JSON: year, title, text)" name="timelineJson" value={settings.timelineJson || "[]"} onChange={e => setSettings(s => ({ ...s, timelineJson: e.target.value }))} textarea />
-                </div>
+        {tab === "collaborations" && (
+          <div className="animate-in fade-in slide-in-from-bottom-4 duration-500">
+            <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-8">
+              <div>
+                <h2 className="text-3xl font-black text-slate-800 tracking-tight">Partners & Collaborations</h2>
+                <p className="text-slate-500 text-sm mt-1 flex items-center gap-2">
+                  <Handshake size={14} className="text-amber-500" /> Manage global and category-specific partnerships
+                </p>
               </div>
+              <button
+                onClick={() => openModal("collaboration")}
+                className="flex items-center justify-center gap-2 bg-slate-900 hover:bg-slate-800 text-white px-6 py-3 rounded-2xl text-sm font-bold transition shadow-xl shadow-slate-900/10"
+              >
+                <Plus size={18} /> New Partner
+              </button>
+            </div>
 
-              {/* Contact Page */}
-              <div className="space-y-6 pt-4 border-t border-slate-100">
-                <h3 className="text-lg font-bold text-slate-800 border-b border-slate-100 pb-2 flex items-center gap-2">
-                  <Phone className="text-amber-500" size={18} /> Contact Page: Details
-                </h3>
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  <Field label="Office Hours" name="officeHours" value={settings.officeHours || ""} onChange={e => setSettings(s => ({ ...s, officeHours: e.target.value }))} />
-                  <Field label="WhatsApp Number" name="whatsappNumber" value={settings.whatsappNumber || ""} onChange={e => setSettings(s => ({ ...s, whatsappNumber: e.target.value }))} />
-                  <Field label="Service Coverage Area" name="serviceArea" value={settings.serviceArea || ""} onChange={e => setSettings(s => ({ ...s, serviceArea: e.target.value }))} />
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+              {collaborations.map(c => (
+                <div key={c.id} className="group bg-white rounded-3xl border border-slate-100 shadow-sm hover:shadow-xl transition-all overflow-hidden flex flex-col p-5">
+                  <div className="h-32 bg-slate-50 rounded-2xl border border-slate-100 flex items-center justify-center p-6 mb-4 overflow-hidden relative">
+                     <img src={c.imageUrl} alt={c.name} className="max-w-full max-h-full object-contain transition-transform group-hover:scale-110" />
+                     {c.isGlobal && (
+                        <div className="absolute top-2 right-2 bg-emerald-500 text-white text-[8px] font-black uppercase px-2 py-0.5 rounded-full tracking-widest shadow-lg shadow-emerald-500/20 z-10">Global</div>
+                     )}
+                  </div>
+                  <div className="flex-1">
+                    <div className="flex items-center justify-between mb-1">
+                        <h3 className="font-bold text-slate-800 text-sm truncate uppercase tracking-tighter">{c.name}</h3>
+                        <span className="text-[10px] font-bold text-slate-400">#{c.order}</span>
+                    </div>
+                    {c.category?.label && <p className="text-[9px] font-black text-amber-600 uppercase tracking-widest mb-2">{c.category.label}</p>}
+                    <p className="text-xs text-slate-500 line-clamp-2 leading-relaxed mb-4">{c.description || "No description provided."}</p>
+                  </div>
+                  <div className="pt-4 border-t border-slate-50 flex gap-2">
+                    <button onClick={() => openModal("collaboration", c)} className="flex-1 text-[10px] font-bold border border-slate-200 py-2 rounded-lg hover:bg-slate-50 transition uppercase tracking-widest">Edit</button>
+                    <button onClick={() => deleteCollaboration(c.id)} className="p-2 text-red-500 hover:bg-red-50 rounded-lg transition"><Trash2 size={14} /></button>
+                  </div>
                 </div>
-              </div>
-
-              <div className="pt-6">
-                <button onClick={saveSettings} className="flex items-center gap-2 bg-amber-500 hover:bg-amber-400 text-white px-8 py-3 rounded-xl text-sm font-bold transition shadow-lg shadow-amber-500/20">
-                  <Save size={18} /> Update Page Content
-                </button>
-              </div>
+              ))}
+              {collaborations.length === 0 && (
+                <div className="col-span-full py-20 text-center bg-white rounded-3xl border-2 border-dashed border-slate-100">
+                    <Handshake size={48} className="mx-auto text-slate-200 mb-4" />
+                    <h3 className="text-lg font-bold text-slate-800">No collaborations found</h3>
+                    <p className="text-slate-500 text-sm max-w-xs mx-auto mb-6">Add partners and brands you collaborate with to show them on your inner pages.</p>
+                    <button onClick={() => openModal("collaboration")} className="bg-amber-500 text-white px-6 py-2.5 rounded-xl font-bold text-sm">Add Partner Logo</button>
+                </div>
+              )}
             </div>
           </div>
         )}
-      </main>
+
+        {/* CONTENT HUB OVERVIEW */}
+        {tab === "overview" && stats.productCount === 0 && (
+          <div className="flex flex-col items-center justify-center py-20 bg-white rounded-[3rem] border border-slate-100 shadow-sm">
+             <div className="w-24 h-24 bg-amber-50 rounded-full flex items-center justify-center mb-6">
+                <Package size={40} className="text-amber-500" />
+             </div>
+             <h3 className="text-2xl font-black text-slate-800 mb-2 tracking-tight">Empty Catalog</h3>
+             <p className="text-slate-500 text-center max-w-sm mb-8">You haven't added any products or projects yet. Start by populating your database.</p>
+             <button onClick={() => setTab("products")} className="bg-slate-900 text-white px-8 py-3 rounded-2xl font-bold transition shadow-xl shadow-slate-900/10">Go to Products</button>
+          </div>
+        )}
+
 
       {/* ========= MODALS ========= */}
 
@@ -1092,7 +1395,7 @@ export default function AdminDashboard() {
             <Field label="Page" name="page" value={formData.page || ""} onChange={handleFormChange} required />
             <Field label="Title" name="title" value={formData.title || ""} onChange={handleFormChange} required />
             <Field label="Subtitle" name="subtitle" value={formData.subtitle || ""} onChange={handleFormChange} textarea />
-            <Field label="Image URL" name="imageUrl" value={formData.imageUrl || ""} onChange={handleFormChange} />
+            <ImageUpload label="Hero Media Image" value={formData.imageUrl || ""} onChange={(v) => setFormData(p => ({ ...p, imageUrl: v }))} />
             <div className="grid grid-cols-2 gap-4">
               <Field label="CTA Text" name="ctaText" value={formData.ctaText || ""} onChange={handleFormChange} />
               <Field label="CTA Link" name="ctaLink" value={formData.ctaLink || ""} onChange={handleFormChange} />
@@ -1108,12 +1411,46 @@ export default function AdminDashboard() {
         </Modal>
       )}
 
+      {modal?.type === "collaboration" && (
+        <Modal title={formData.id ? "Edit Collaboration" : "Add Collaboration"} onClose={() => setModal(null)}>
+          <div className="space-y-4 pb-4">
+            <Field label="Partner Name" name="name" value={formData.name || ""} onChange={handleFormChange} required />
+            <ImageUpload label="Partner Logo" value={formData.imageUrl || ""} onChange={(v) => setFormData(p => ({ ...p, imageUrl: v }))} />
+            <Field label="Partner Website (Optional)" name="href" value={formData.href || ""} onChange={handleFormChange} />
+            <div className="space-y-1">
+              <label className="block text-xs font-bold text-slate-600 uppercase tracking-widest mb-1.5 px-1">Linked Category (Optional)</label>
+              <select 
+                name="categoryId" 
+                value={formData.categoryId || ""} 
+                onChange={handleFormChange} 
+                className="w-full bg-white border border-slate-200 rounded-xl px-4 py-3 text-sm focus:outline-none focus:ring-4 focus:ring-amber-500/10 focus:border-amber-400 transition-all font-medium"
+              >
+                <option value="">Global / No Category</option>
+                {categories.map(c => <option key={c.id} value={c.id}>{c.label}</option>)}
+              </select>
+            </div>
+            <label className="flex items-center gap-3 cursor-pointer bg-slate-50 p-3 rounded-xl border border-slate-100 mt-2">
+                <input type="checkbox" name="isGlobal" checked={!!formData.isGlobal} onChange={handleFormChange} className="w-4 h-4 accent-amber-500 rounded" />
+                <div className="flex flex-col">
+                  <span className="text-xs font-bold text-slate-700 uppercase tracking-tighter">Global Visibility</span>
+                  <span className="text-[10px] text-slate-500 font-medium">Shows on all relevant partner sections</span>
+                </div>
+            </label>
+            <Field label="Display Order" name="order" value={formData.order || 0} onChange={handleFormChange} type="number" />
+            
+            <button onClick={saveCollaboration} className="w-full bg-slate-900 hover:bg-black text-white py-4 rounded-xl font-black text-sm transition-all flex items-center justify-center gap-2 mt-4 shadow-xl shadow-slate-900/10">
+              <Save size={16} className="text-amber-500" /> {formData.id ? "UPDATE PARTNER" : "ADD PARTNER"}
+            </button>
+          </div>
+        </Modal>
+      )}
+
       {modal?.type === "homepage" && (
         <Modal title={formData.id ? "Edit Grid Card" : "Add Grid Card"} onClose={() => setModal(null)}>
           <div className="space-y-4">
             <Field label="Card Title" name="label" value={formData.label || ""} onChange={handleFormChange} required />
             <Field label="Short Description" name="description" value={formData.description || ""} onChange={handleFormChange} textarea />
-            <Field label="Image URL (Background)" name="imageUrl" value={formData.imageUrl || ""} onChange={handleFormChange} />
+            <ImageUpload label="Display Image" value={formData.imageUrl || ""} onChange={(v) => setFormData(p => ({ ...p, imageUrl: v }))} />
             <Field label="Link (href)" name="href" value={formData.href || ""} onChange={handleFormChange} />
             <Field label="Display Order" name="order" value={formData.order || 0} onChange={handleFormChange} type="number" />
             <button onClick={saveHomepageGridItem} className="w-full bg-amber-500 hover:bg-amber-400 text-white py-3 rounded-xl font-bold transition flex items-center justify-center gap-2">
@@ -1138,17 +1475,37 @@ export default function AdminDashboard() {
 
       {modal?.type === "category" && (
         <Modal title={formData.id ? "Edit Navbar Category" : "Add Navbar Category"} onClose={() => setModal(null)}>
-          <div className="space-y-4">
-            <Field label="Category Name" name="label" value={formData.label || ""} onChange={handleFormChange} required />
-            <Field label="Description" name="description" value={formData.description || ""} onChange={handleFormChange} textarea />
-            <Field label="Navbar Icon SVG" name="iconSvg" value={formData.iconSvg || ""} onChange={handleFormChange} textarea />
-            <Field label="Background Image URL" name="imageUrl" value={formData.imageUrl || ""} onChange={handleFormChange} />
-            <Field label="Navbar Icon URL" name="navbarIconUrl" value={formData.navbarIconUrl || ""} onChange={handleFormChange} />
-            <Field label="Routing Page URL" name="href" value={formData.href || ""} onChange={handleFormChange} />
-            <Field label="Display Order" name="order" value={formData.order || 0} onChange={handleFormChange} type="number" />
+          <div className="space-y-4 max-h-[80vh] overflow-y-auto px-1">
+            <div className="bg-slate-50 p-4 rounded-2xl border border-slate-100 space-y-4 mb-4">
+                <span className="text-[10px] font-black uppercase tracking-widest text-slate-400">Basic Info</span>
+                <Field label="Category Name" name="label" value={formData.label || ""} onChange={handleFormChange} required />
+                <Field label="Description" name="description" value={formData.description || ""} onChange={handleFormChange} textarea />
+                <ImageUpload label="Header Background Image" value={formData.imageUrl || ""} onChange={(v) => setFormData(p => ({ ...p, imageUrl: v }))} />
+                <Field label="Routing Page URL" name="href" value={formData.href || ""} onChange={handleFormChange} />
+                <Field label="Display Order" name="order" value={formData.order || 0} onChange={handleFormChange} type="number" />
+            </div>
+
+            <div className="bg-amber-50/50 p-4 rounded-2xl border border-amber-100/50 space-y-4 mb-4">
+                <span className="text-[10px] font-black uppercase tracking-widest text-amber-600 flex items-center gap-2">
+                    <Star size={10} /> Collaboration Block Settings
+                </span>
+                <div className="grid grid-cols-2 gap-3">
+                   <Field label="Block Label (e.g. Partner With Us)" name="collabTitle" value={formData.collabTitle || ""} onChange={handleFormChange} />
+                   <Field label="CTA Button Text" name="collabCtaText" value={formData.collabCtaText || ""} onChange={handleFormChange} />
+                </div>
+                <Field label="Main Header" name="collabSubtitle" value={formData.collabSubtitle || ""} onChange={handleFormChange} />
+                <Field label="Short Description" name="collabDescription" value={formData.collabDescription || ""} onChange={handleFormChange} textarea />
+                <Field label="CTA Link (href)" name="collabCtaLink" value={formData.collabCtaLink || ""} onChange={handleFormChange} />
+            </div>
+
+            <div className="bg-slate-50 p-4 rounded-2xl border border-slate-100 space-y-4">
+                <span className="text-[10px] font-black uppercase tracking-widest text-slate-400">Icons</span>
+                <Field label="Navbar Icon SVG" name="iconSvg" value={formData.iconSvg || ""} onChange={handleFormChange} textarea />
+                <ImageUpload label="Navbar Icon Image (Fallback)" value={formData.navbarIconUrl || ""} onChange={(v) => setFormData(p => ({ ...p, navbarIconUrl: v }))} />
+            </div>
             
-            <button onClick={saveCategory} className="w-full bg-amber-500 hover:bg-amber-400 text-white py-3 rounded-xl font-bold transition flex items-center justify-center gap-2">
-              <Save size={16} /> Save Category
+            <button onClick={saveCategory} className="w-full bg-amber-500 hover:bg-amber-400 text-white py-4 rounded-2xl font-black text-sm transition-all flex items-center justify-center gap-2 mt-4 shadow-xl shadow-amber-500/10">
+              <Save size={18} /> SAVE CATEGORY SETTINGS
             </button>
           </div>
         </Modal>
@@ -1220,19 +1577,15 @@ export default function AdminDashboard() {
                 <span className="text-[10px] font-black uppercase tracking-[0.2em]">Media & Visuals</span>
               </div>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <Field label="Thumbnail Cover (URL)" name="imageUrl" value={formData.imageUrl || ""} onChange={handleFormChange} />
+                <ImageUpload label="Main Covering Thumbnail" value={formData.imageUrl || ""} onChange={(v) => setFormData(p => ({ ...p, imageUrl: v }))} />
                 <Field label="CSS Height Class (Default: h-[400px])" name="heightClass" value={formData.heightClass || "h-[400px]"} onChange={handleFormChange} />
               </div>
-              <div>
-                <label className="block text-xs font-bold text-slate-600 uppercase tracking-widest mb-1.5 px-1">Image Gallery (JSON List of URLs)</label>
-                <textarea 
-                  name="imagesJson" 
-                  value={formData.imagesJson || "[]"} 
-                  onChange={handleFormChange} 
-                  className="w-full bg-white border border-slate-200 rounded-2xl px-4 py-3 text-xs font-mono h-24 focus:outline-none focus:ring-4 focus:ring-amber-500/10 focus:border-amber-400 transition-all"
-                  placeholder='["/img/p1.jpg", "/img/p2.jpg"]'
-                />
-              </div>
+              <ImageUpload 
+                label="Product Experience Gallery" 
+                multiple 
+                value={formData.imagesJson ? JSON.parse(formData.imagesJson) : []} 
+                onChange={(v) => setFormData(p => ({ ...p, imagesJson: JSON.stringify(v) }))} 
+              />
             </div>
 
             {/* SECTION: DATA STRUCTURES */}
@@ -1347,7 +1700,7 @@ export default function AdminDashboard() {
               <Field label="Area (sqm)" name="area" value={formData.area || ""} onChange={handleFormChange} required />
             </div>
             <Field label="Year" name="year" value={formData.year || ""} onChange={handleFormChange} required />
-            <Field label="Image URL" name="imageUrl" value={formData.imageUrl || ""} onChange={handleFormChange} />
+            <ImageUpload label="Project Showcase Image" value={formData.imageUrl || ""} onChange={(v) => setFormData(p => ({ ...p, imageUrl: v }))} />
             <button onClick={saveProject} className="w-full bg-amber-500 hover:bg-amber-400 text-white py-3 rounded-xl font-bold transition flex items-center justify-center gap-2">
               <Save size={16} /> Save Project
             </button>
@@ -1389,6 +1742,8 @@ export default function AdminDashboard() {
       )}
 
       {toast && <Toast msg={toast.msg} type={toast.type} />}
+        </main>
+      </div>
     </div>
   );
 }

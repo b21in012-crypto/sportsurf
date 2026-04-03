@@ -1,4 +1,5 @@
 import Link from "next/link";
+import Image from "next/image";
 
 const featured = [
   {
@@ -61,7 +62,7 @@ function PortfolioCard({ item, className }: { item: any; className: string }) {
   return (
     <Link href={item.href} className={`group relative rounded-[2rem] overflow-hidden flex flex-col ${className}`}>
       {/* Background image */}
-      <img src={item.image} alt={item.label} className="absolute inset-0 w-full h-full object-cover transition-transform duration-700 group-hover:scale-110" />
+      <Image src={item.image} alt={item.label} fill className="object-cover transition-transform duration-700 group-hover:scale-110" />
       
       {/* Gradient Overlay */}
       <div className="absolute inset-0 bg-gradient-to-t from-[#0B0F19] via-[#0B0F19]/40 to-transparent transition-opacity duration-300 group-hover:from-[#0B0F19]/90" />

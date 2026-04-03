@@ -14,7 +14,7 @@ type TabGroup = string;
 type Tab = string;
 
 interface StatsData { userCount: number; productCount: number; projectCount: number; testimonialCount: number }
-interface HeroItem { id: string; page: string; title: string; subtitle?: string; imageUrl?: string; ctaText?: string; ctaLink?: string; textColor: string; overlayOpacity: number }
+interface HeroItem { id: string; page: string; title: string; subtitle?: string; imageUrl?: string; videoUrl?: string; heroTag?: string; ctaText?: string; ctaLink?: string; cta2Text?: string; cta2Link?: string; textColor: string; overlayOpacity: number }
 interface NavItem { id: string; label: string; href: string; order: number }
 interface ProductItem { 
   id: string; 

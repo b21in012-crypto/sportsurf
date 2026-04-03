@@ -10,13 +10,7 @@ interface ProductGalleryProps {
 export default function ProductGallery({ images, productName }: ProductGalleryProps) {
   const [activeImageIndex, setActiveImageIndex] = useState(0);
 
-  const galleryImages = images.length > 0 ? images : ["/images/sports/premium_sports_hero.png"];
-  
-  // Fill up with placeholders if needed to match the original design's aesthetic bulk
-  const displayImages = [...galleryImages];
-  while (displayImages.length < 3) {
-      displayImages.push("/images/indian_complex_detail.png");
-  }
+  const displayImages = images.length > 0 ? images : ["/images/sports/premium_sports_hero.png"];
 
   return (
     <div className="flex flex-col gap-4">

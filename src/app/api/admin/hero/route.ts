@@ -17,8 +17,13 @@ export async function GET() {
 
 export async function POST(req: NextRequest) {
   if (!(await checkAdmin())) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-  const data = await req.json();
-  const hero = await prisma.heroSection.create({ data });
-  return NextResponse.json(hero);
+  try {
+     const data = await req.json();
+     const hero = await prisma.heroSection.create({ data });
+     return NextResponse.json(hero);
+  } catch (err: any) {
+     console.error("Hero create error:", err);
+     return NextResponse.json({ error: err.message || "Failed to create hero section" }, { status: 500 });
+  }
 }
 

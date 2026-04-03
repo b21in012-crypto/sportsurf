@@ -27,6 +27,7 @@ export async function POST(req: Request) {
   try {
     const { 
       label, order, description, icon, iconSvg, navbarIconUrl, imageUrl, href,
+      backgroundColor,
       collabTitle, collabSubtitle, collabDescription, collabCtaText, collabCtaLink 
     } = await req.json();
     const item = await prisma.category.create({
@@ -39,6 +40,7 @@ export async function POST(req: Request) {
         href,
         order: parseInt(order) || 0,
         imageUrl,
+        backgroundColor,
         collabTitle,
         collabSubtitle,
         collabDescription,

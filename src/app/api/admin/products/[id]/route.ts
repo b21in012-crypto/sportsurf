@@ -16,13 +16,23 @@ export async function GET(_: NextRequest, { params }: { params: { id: string } }
 
 export async function PUT(req: NextRequest, { params }: { params: { id: string } }) {
   if (!(await checkAdmin())) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-  const data = await req.json();
-  const product = await prisma.product.update({ where: { id: params.id }, data });
-  return NextResponse.json(product);
+  try {
+     const data = await req.json();
+     const product = await prisma.product.update({ where: { id: params.id }, data });
+     return NextResponse.json(product);
+  } catch (err: any) {
+     console.error("Product update error:", err);
+     return NextResponse.json({ error: err.message || "Failed to update product" }, { status: 500 });
+  }
 }
 
 export async function DELETE(_: NextRequest, { params }: { params: { id: string } }) {
   if (!(await checkAdmin())) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-  await prisma.product.delete({ where: { id: params.id } });
-  return NextResponse.json({ success: true });
+  try {
+     await prisma.product.delete({ where: { id: params.id } });
+     return NextResponse.json({ success: true });
+  } catch (err: any) {
+     console.error("Product delete error:", err);
+     return NextResponse.json({ error: err.message || "Failed to delete product" }, { status: 500 });
+  }
 }

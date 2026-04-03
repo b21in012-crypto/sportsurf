@@ -1,0 +1,56 @@
+﻿
+> sportsurf-antigravity@0.1.0 build
+> next build
+
+  Γû▓ Next.js 14.2.35
+  - Environments: .env
+
+   Creating an optimized production build ...
+ Γ£ô Compiled successfully
+   Linting and checking validity of types ...
+node.exe : Failed to compile.
+At line:1 char:1
++ & "C:\Program Files\nodejs/node.exe" "C:\Program 
+Files\nodejs/node_mo ...
++ ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+~~~~~~
+    + CategoryInfo          : NotSpecified: (Failed to compile.: 
+   String) [], RemoteException
+    + FullyQualifiedErrorId : NativeCommandError
+ 
+
+./src/app/admin/dashboard/page.tsx:960:87
+Type error: Property 'backgroundColor' does not exist on type '{ 
+id: string; label: string; order: number; imageUrl?: string | 
+undefined; iconSvg?: string | undefined; navbarIconUrl?: string 
+| undefined; description?: string | undefined; }'.
+
+[0m [90m 958 |[39m                                            
+          [33m<[39m[33mlabel[39m 
+className[33m=[39m[32m"block text-[10px] font-black 
+text-slate-500 uppercase tracking-widest mb-1.5 
+px-1"[39m[33m>[39m[33mHero[39m [33mBackground[39m 
+[33mColor[39m ([33mHex[39m)[33m<[39m[33m/[39m[33mlabel[
+39m[33m>[39m[0m
+[0m [90m 959 |[39m                                            
+          [33m<[39m[33mdiv[39m 
+className[33m=[39m[32m"relative"[39m[33m>[39m[0m
+[0m[31m[1m>[22m[39m[90m 960 |[39m                         
+                                [33m<[39m[33minput[39m 
+type[33m=[39m[32m"text"[39m 
+value[33m=[39m{cat[33m.[39mbackgroundColor [33m||[39m 
+[32m"#fafbff"[39m} onChange[33m=[39m{(e) [33m=>[39m {[0m
+[0m [90m     |[39m                                            
+                                           
+[31m[1m^[22m[39m[0m
+[0m [90m 961 |[39m                                            
+                [36mconst[39m newCats [33m=[39m 
+[[33m...[39mcategories][33m;[39m[0m
+[0m [90m 962 |[39m                                            
+                [36mconst[39m idx [33m=[39m 
+newCats[33m.[39mfindIndex(c [33m=>[39m c[33m.[39mid 
+[33m===[39m cat[33m.[39mid)[33m;[39m[0m
+[0m [90m 963 |[39m                                            
+                newCats[idx][33m.[39mbackgroundColor 
+[33m=[39m e[33m.[39mtarget[33m.[39mvalue[33m;[39m[0m
+Next.js build worker exited with code: 1 and signal: null

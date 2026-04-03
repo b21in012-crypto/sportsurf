@@ -27,8 +27,13 @@ export async function GET(req: NextRequest) {
 
 export async function POST(req: NextRequest) {
   if (!(await checkAdmin())) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-  const data = await req.json();
-  const product = await prisma.product.create({ data });
-  return NextResponse.json(product);
+  try {
+     const data = await req.json();
+     const product = await prisma.product.create({ data });
+     return NextResponse.json(product);
+  } catch (err: any) {
+     console.error("Product create error:", err);
+     return NextResponse.json({ error: err.message || "Failed to create product" }, { status: 500 });
+  }
 }
 

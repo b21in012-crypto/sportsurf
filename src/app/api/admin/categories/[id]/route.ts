@@ -12,7 +12,8 @@ export async function PUT(req: Request, { params }: { params: { id: string } }) 
   if (!(await checkAdmin())) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   try {
     const { 
-      label, order, description, icon, iconSvg, navbarIconUrl, imageUrl, href,
+      label, order, description, icon, iconSvg, navbarIconUrl, imageUrl, videoUrl, href,
+      heroTag, ctaText, ctaLink, cta2Text, cta2Link, backgroundColor,
       collabTitle, collabSubtitle, collabDescription, collabCtaText, collabCtaLink 
     } = await req.json();
     const item = await prisma.category.update({
@@ -26,6 +27,13 @@ export async function PUT(req: Request, { params }: { params: { id: string } }) 
         href,
         order: parseInt(order) || 0,
         imageUrl,
+        videoUrl,
+        heroTag,
+        ctaText,
+        ctaLink,
+        cta2Text,
+        cta2Link,
+        backgroundColor,
         collabTitle,
         collabSubtitle,
         collabDescription,

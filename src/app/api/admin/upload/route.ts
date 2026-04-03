@@ -16,25 +16,13 @@ export async function POST(req: NextRequest) {
 
     // Check for missing credentials explicitly
     if (!cloudName || !apiKey || !apiSecret) {
-      console.error("CLOUD_UPLOAD_ERROR: Cloudinary variables are missing in Vercel/Railway environment.");
-      console.log("Missing:", { cloudName: !!cloudName, apiKey: !!apiKey, apiSecret: !!apiSecret });
+      const missing = { cloudName: !!cloudName, apiKey: !!apiKey, apiSecret: !!apiSecret };
+      console.error("CLOUD_UPLOAD_ERROR: Missing:", missing);
       
-      // Fallback: local storage for local dev environment
-      if (process.env.NODE_ENV === "development") {
-        const { writeFile, mkdir } = await import("fs/promises");
-        const { join } = await import("path");
-        const bytes = await file.arrayBuffer();
-        const buffer = Buffer.from(bytes);
-        const uploadDir = join(process.cwd(), "public", "uploads");
-        try { await mkdir(uploadDir, { recursive: true }); } catch {}
-        const uniqueId = Date.now() + "-" + Math.random().toString(36).substring(2, 9);
-        const ext = file.name.split(".").pop();
-        const fileName = `${uniqueId}.${ext}`;
-        await writeFile(join(uploadDir, fileName), buffer);
-        return NextResponse.json({ url: `/uploads/${fileName}` });
-      }
-      
-      return NextResponse.json({ error: "Cloud storage credentials not configured" }, { status: 500 });
+      return NextResponse.json({ 
+        error: "Cloud storage credentials not configured",
+        debug: missing 
+      }, { status: 500 });
     }
 
     // Configure Cloudinary inside the handler
@@ -72,8 +60,8 @@ export async function POST(req: NextRequest) {
   } catch (error: any) {
     console.error("CRITICAL UPLOAD API ERROR:", error);
     return NextResponse.json({ 
-      error: error.message || "Upload failed", 
-      details: process.env.NODE_ENV === "development" ? error.stack : undefined 
+      error: error.message || "Upload failed",
+      cloudinary_error: error 
     }, { status: 500 });
   }
 }

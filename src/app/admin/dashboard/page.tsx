@@ -40,6 +40,22 @@ interface ProductItem {
 interface SubCategoryItem { id: string; name: string; categoryId: string; order: number; category?: { label: string } }
 interface ProjectItem { id: string; name: string; city: string; state: string; surface: string; area: string; year: string; imageUrl?: string }
 interface TestimonialItem { id: string; name: string; institution: string; quote: string; avatar?: string }
+interface CategoryItem {
+  id: string;
+  label: string;
+  order: number;
+  imageUrl?: string;
+  iconSvg?: string;
+  navbarIconUrl?: string;
+  description?: string;
+  backgroundColor?: string;
+  heroTag?: string;
+  videoUrl?: string;
+  ctaText?: string;
+  ctaLink?: string;
+  cta2Text?: string;
+  cta2Link?: string;
+}
 interface UserItem { id: string; name?: string; email?: string; role: string; emailVerified?: string }
 interface CollaborationItem { 
   id: string; 
@@ -224,7 +240,7 @@ export default function AdminDashboard() {
   const [stats, setStats] = useState<StatsData>({ userCount: 0, productCount: 0, projectCount: 0, testimonialCount: 0 });
   const [heroes, setHeroes] = useState<HeroItem[]>([]);
   const [navItems, setNavItems] = useState<NavItem[]>([]);
-  const [categories, setCategories] = useState<{ id: string; label: string; order: number; imageUrl?: string; iconSvg?: string; navbarIconUrl?: string; description?: string; backgroundColor?: string }[]>([]);
+  const [categories, setCategories] = useState<CategoryItem[]>([]);
   const [homepageGridItems, setHomepageGridItems] = useState<{ id: string; label: string; description?: string; imageUrl?: string; href?: string; order: number }[]>([]);
   const [tickerItems, setTickerItems] = useState<{ id: string; text: string; order: number }[]>([]);
   const [products, setProducts] = useState<ProductItem[]>([]);
@@ -964,7 +980,7 @@ export default function AdminDashboard() {
                                     <div className="space-y-6">
                                        {/* We reuse the Category edit or Hero edit logic based on slug */}
                                        {isCategory ? (() => {
-                                          const cat = categories.find(c => slugify(c.label) === slug || c.id === slug);
+                                          const cat = categories.find(c => slugify(c.label) === slug || c.id === slug) as any;
                                           if (!cat) return <div className="p-10 bg-slate-50 rounded-3xl text-center text-slate-400 italic">Category data not found. Syncing required.</div>;
                                           return (
                                             <div className="space-y-4">

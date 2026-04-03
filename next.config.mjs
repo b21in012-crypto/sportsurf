@@ -1,6 +1,6 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
-  output: 'standalone',
+  // Remove standalone for better compatibility with Vercel/Railway default start
   images: {
     remotePatterns: [
       {

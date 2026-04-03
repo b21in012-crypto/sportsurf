@@ -1023,7 +1023,13 @@ export default function AdminDashboard() {
                                                             newCats[idx].backgroundColor = e.target.value;
                                                             setCategories(newCats);
                                                          }} className="w-full bg-slate-50 border border-slate-100 rounded-2xl pl-12 pr-4 py-3 text-sm focus:outline-none focus:ring-4 focus:ring-amber-500/10 focus:border-amber-400 font-bold" />
-                                                         <div className="absolute left-3 top-1/2 -translate-y-1/2 w-6 h-6 rounded border border-slate-200" style={{backgroundColor: cat.backgroundColor || "#fafbff"}}></div>
+                                                         <input type="color" value={cat.backgroundColor || "#fafbff"} onChange={(e) => {
+                                                            const newCats = [...categories];
+                                                            const idx = newCats.findIndex(c => c.id === cat.id);
+                                                            newCats[idx].backgroundColor = e.target.value;
+                                                            setCategories(newCats);
+                                                         }} className="absolute left-3 top-1/2 -translate-y-1/2 w-7 h-7 opacity-0 cursor-pointer z-10" title="Choose color" />
+                                                         <div className="absolute left-3 top-1/2 -translate-y-1/2 w-6 h-6 rounded border border-slate-200 pointer-events-none" style={{backgroundColor: cat.backgroundColor || "#fafbff"}}></div>
                                                       </div>
                                                    </div>
                                                    <div>
@@ -1129,7 +1135,15 @@ export default function AdminDashboard() {
                                                                setHeroes(newHeroes);
                                                             }
                                                          }} className="w-full bg-slate-50 border border-slate-100 rounded-2xl pl-12 pr-4 py-3 text-sm focus:outline-none focus:ring-4 focus:ring-amber-500/10 focus:border-amber-400 font-bold" />
-                                                         <div className="absolute left-3 top-1/2 -translate-y-1/2 w-6 h-6 rounded border border-slate-200" style={{backgroundColor: data.textColor || "#ffffff"}}></div>
+                                                         <input type="color" value={data.textColor || "#ffffff"} onChange={(e) => {
+                                                            const newHeroes = [...heroes];
+                                                            const idx = newHeroes.findIndex(h => h.id === data.id);
+                                                            if (idx !== -1) {
+                                                               newHeroes[idx].textColor = e.target.value;
+                                                               setHeroes(newHeroes);
+                                                            }
+                                                         }} className="absolute left-3 top-1/2 -translate-y-1/2 w-7 h-7 opacity-0 cursor-pointer z-10" title="Choose color" />
+                                                         <div className="absolute left-3 top-1/2 -translate-y-1/2 w-6 h-6 rounded border border-slate-200 pointer-events-none" style={{backgroundColor: data.textColor || "#ffffff"}}></div>
                                                       </div>
                                                    </div>
                                                 </div>

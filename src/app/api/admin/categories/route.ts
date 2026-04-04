@@ -27,7 +27,8 @@ export async function POST(req: Request) {
   try {
     const { 
       label, order, description, icon, iconSvg, navbarIconUrl, imageUrl, href,
-      backgroundColor,
+      backgroundColor, heroTag, ctaText, ctaLink, cta2Text, cta2Link,
+      imageUrl2, imageLabel2, imageUrl3, imageLabel3,
       collabTitle, collabSubtitle, collabDescription, collabCtaText, collabCtaLink 
     } = await req.json();
     const item = await prisma.category.create({
@@ -40,7 +41,16 @@ export async function POST(req: Request) {
         href,
         order: parseInt(order) || 0,
         imageUrl,
+        heroTag,
+        ctaText,
+        ctaLink,
+        cta2Text,
+        cta2Link,
         backgroundColor,
+        imageUrl2,
+        imageLabel2,
+        imageUrl3,
+        imageLabel3,
         collabTitle,
         collabSubtitle,
         collabDescription,
@@ -53,4 +63,3 @@ export async function POST(req: Request) {
     return new NextResponse(err.message || "Error creating", { status: 500 });
   }
 }
-

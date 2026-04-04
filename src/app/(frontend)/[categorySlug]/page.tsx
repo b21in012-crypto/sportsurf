@@ -100,7 +100,7 @@ const MasterMinimalHero = ({ title, description, baseImage, sports, heroTag, cta
   );
 };
 
-const MasterAdventureHero = ({ title, description, baseImage, sports, heroTag, ctaText, ctaLink, videoUrl, backgroundColor }: any) => {
+const MasterAdventureHero = ({ title, description, baseImage, sports, heroTag, ctaText, ctaLink, videoUrl, backgroundColor, imageUrl2, imageLabel2, imageUrl3, imageLabel3 }: any) => {
   return (
     <div className="mb-12 grid grid-cols-1 md:grid-cols-12 gap-3 h-[350px] md:h-[380px]">
        <div className="md:col-span-8 relative rounded-3xl overflow-hidden border border-ag-border group" style={backgroundColor ? { backgroundColor } : {}}>
@@ -122,8 +122,8 @@ const MasterAdventureHero = ({ title, description, baseImage, sports, heroTag, c
        </div>
        <div className="md:col-span-4 grid grid-rows-2 gap-3 h-full">
           {[
-            { img: "https://images.unsplash.com/photo-1541252260730-0412e3e2108e?auto=format&fit=crop&q=80&w=400", label: sports[0] || 'Experience' },
-            { img: "https://images.unsplash.com/photo-1504450758481-7338eba7524a?auto=format&fit=crop&q=80&w=400", label: sports[1] || 'Technical' }
+            { img: imageUrl2 || "https://images.unsplash.com/photo-1541252260730-0412e3e2108e?auto=format&fit=crop&q=80&w=400", label: imageLabel2 || sports[0] || 'Experience' },
+            { img: imageUrl3 || "https://images.unsplash.com/photo-1504450758481-7338eba7524a?auto=format&fit=crop&q=80&w=400", label: imageLabel3 || sports[1] || 'Technical' }
           ].map((s, i) => (
              <div key={i} className="relative rounded-3xl overflow-hidden border border-ag-border bg-[#f8f9fa]">
                 <Image src={s.img} fill className="object-cover opacity-60" alt={s.label} />
@@ -415,6 +415,10 @@ function CategoryContent() {
             heroTag={currentCategory?.heroTag}
             videoUrl={currentCategory?.videoUrl}
             backgroundColor={currentCategory?.backgroundColor}
+            imageUrl2={currentCategory?.imageUrl2}
+            imageLabel2={currentCategory?.imageLabel2}
+            imageUrl3={currentCategory?.imageUrl3}
+            imageLabel3={currentCategory?.imageLabel3}
           />
         )}
         {heroStyle === 'roster' && (

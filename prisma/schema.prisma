@@ -110,6 +110,10 @@ model Category {
   heroTag           String?         @default("Infrastructure")
   videoUrl          String?
   backgroundColor   String?         @default("#0f172a")
+  imageUrl2         String?         @default("https://images.unsplash.com/photo-1541252260730-0412e3e2108e?auto=format&fit=crop&q=80&w=400")
+  imageLabel2       String?         @default("Experience")
+  imageUrl3         String?         @default("https://images.unsplash.com/photo-1504450758481-7338eba7524a?auto=format&fit=crop&q=80&w=400")
+  imageLabel3       String?         @default("Technical")
   collaborations    Collaboration[]
   subCategories     SubCategory[]
 }

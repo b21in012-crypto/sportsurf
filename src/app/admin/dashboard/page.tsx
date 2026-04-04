@@ -55,6 +55,10 @@ interface CategoryItem {
   ctaLink?: string;
   cta2Text?: string;
   cta2Link?: string;
+  imageUrl2?: string;
+  imageLabel2?: string;
+  imageUrl3?: string;
+  imageLabel3?: string;
 }
 interface UserItem { id: string; name?: string; email?: string; role: string; emailVerified?: string }
 interface CollaborationItem { 
@@ -979,7 +983,6 @@ export default function AdminDashboard() {
                                  </div>
                                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                                     <div className="space-y-6">
-                                       {/* We reuse the Category edit or Hero edit logic based on slug */}
                                        {isCategory ? (() => {
                                           const cat = categories.find(c => slugify(c.label) === slug || c.id === slug) as any;
                                           if (!cat) return <div className="p-10 bg-slate-50 rounded-3xl text-center text-slate-400 italic">Category data not found. Syncing required.</div>;
@@ -1057,6 +1060,41 @@ export default function AdminDashboard() {
                                                        setCategories(newCats);
                                                    }} />
                                                 </div>
+                                                <div className="bg-amber-50/30 p-5 rounded-3xl border border-amber-100/50 space-y-4">
+                                                    <span className="text-[10px] font-black uppercase tracking-widest text-amber-600 flex items-center gap-2">
+                                                       <Star size={10} /> Specialized Hero Grid (3-Image Layout)
+                                                    </span>
+                                                    <div className="grid grid-cols-2 gap-4">
+                                                       <div className="space-y-4">
+                                                          <ImageUpload label="Hero Grid Image 2" value={cat.imageUrl2 || ""} onChange={(v) => {
+                                                             const newCats = [...categories];
+                                                             const idx = newCats.findIndex(c => c.id === cat.id);
+                                                             newCats[idx].imageUrl2 = v;
+                                                             setCategories(newCats);
+                                                          }} />
+                                                          <input type="text" value={cat.imageLabel2 || ""} onChange={(e) => {
+                                                             const newCats = [...categories];
+                                                             const idx = newCats.findIndex(c => c.id === cat.id);
+                                                             newCats[idx].imageLabel2 = e.target.value;
+                                                             setCategories(newCats);
+                                                          }} className="w-full bg-white border border-slate-200 rounded-xl px-4 py-2 text-xs font-bold focus:outline-none focus:ring-4 focus:ring-amber-500/10 focus:border-amber-400" placeholder="Grid Label 2 (e.g. Experience)" />
+                                                       </div>
+                                                       <div className="space-y-4">
+                                                          <ImageUpload label="Hero Grid Image 3" value={cat.imageUrl3 || ""} onChange={(v) => {
+                                                             const newCats = [...categories];
+                                                             const idx = newCats.findIndex(c => c.id === cat.id);
+                                                             newCats[idx].imageUrl3 = v;
+                                                             setCategories(newCats);
+                                                          }} />
+                                                          <input type="text" value={cat.imageLabel3 || ""} onChange={(e) => {
+                                                             const newCats = [...categories];
+                                                             const idx = newCats.findIndex(c => c.id === cat.id);
+                                                             newCats[idx].imageLabel3 = e.target.value;
+                                                             setCategories(newCats);
+                                                          }} className="w-full bg-white border border-slate-200 rounded-xl px-4 py-2 text-xs font-bold focus:outline-none focus:ring-4 focus:ring-amber-500/10 focus:border-amber-400" placeholder="Grid Label 3 (e.g. Technical)" />
+                                                       </div>
+                                                    </div>
+                                                 </div>
                                                 <div className="grid grid-cols-2 gap-4">
                                                    <div>
                                                       <label className="block text-[10px] font-black text-slate-500 uppercase tracking-widest mb-1.5 px-1">Primary Button Text</label>
@@ -2277,6 +2315,22 @@ export default function AdminDashboard() {
                 <span className="text-[10px] font-black uppercase tracking-widest text-slate-400">Icons</span>
                 <Field label="Navbar Icon SVG" name="iconSvg" value={formData.iconSvg || ""} onChange={handleFormChange} textarea />
                 <ImageUpload label="Navbar Icon Image (Fallback)" value={formData.navbarIconUrl || ""} onChange={(v) => setFormData(p => ({ ...p, navbarIconUrl: v }))} />
+            </div>
+
+            <div className="bg-amber-50/50 p-5 rounded-2xl border border-amber-100/50 space-y-4">
+                <span className="text-[10px] font-black uppercase tracking-widest text-amber-600 flex items-center gap-2">
+                    <Star size={10} /> 3-Image Hero Layout Assets
+                </span>
+                <div className="grid grid-cols-2 gap-4">
+                  <div className="space-y-2">
+                    <ImageUpload label="Grid Image 2" value={formData.imageUrl2 || ""} onChange={(v) => setFormData(p => ({ ...p, imageUrl2: v }))} />
+                    <Field label="Label 2" name="imageLabel2" value={formData.imageLabel2 || ""} onChange={handleFormChange} placeholder="e.g. Experience" />
+                  </div>
+                  <div className="space-y-2">
+                    <ImageUpload label="Grid Image 3" value={formData.imageUrl3 || ""} onChange={(v) => setFormData(p => ({ ...p, imageUrl3: v }))} />
+                    <Field label="Label 3" name="imageLabel3" value={formData.imageLabel3 || ""} onChange={handleFormChange} placeholder="e.g. Technical" />
+                  </div>
+                </div>
             </div>
             
             <button onClick={saveCategory} className="w-full bg-amber-500 hover:bg-amber-400 text-white py-4 rounded-2xl font-black text-sm transition-all flex items-center justify-center gap-2 mt-4 shadow-xl shadow-amber-500/10">

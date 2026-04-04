@@ -176,9 +176,8 @@ export default function Navbar() {
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-ag-text-muted" size={16} />
           </div>
 
-          {/* Nav links + actions */}
           <div className="hidden md:flex items-center gap-6 ml-auto">
-            {navLinks.map((link) => (
+            {navLinks.filter(l => l.label.toLowerCase() !== "products").map((link) => (
               <Link
                 key={link.label}
                 href={link.href}
@@ -212,11 +211,12 @@ export default function Navbar() {
         </div>
       </div>
 
-      {/* Category Icon Strip */}
+      {/* Category Icon Strip - Updated for mobile & desktop */}
       {(!settings || settings.showCategoryBar) && (
-        <div className="hidden md:block bg-white border-b border-ag-border">
+        <div className="bg-white border-b border-ag-border shadow-sm">
           <div className="container-retail">
-            <div className="flex items-center justify-between py-3 overflow-x-auto scrollbar-hide gap-2">
+            {/* Desktop View: Horizontal Scroll */}
+            <div className="hidden md:flex items-center justify-between py-3 overflow-x-auto scrollbar-hide gap-2">
                {categories.map((cat, i) => {
                  const catHref = cat.href || `/${cat.label.toLowerCase().replace(/\s+/g, "-")}`;
                  const isActive = pathname === catHref;
@@ -226,15 +226,15 @@ export default function Navbar() {
                     key={cat.label}
                     href={catHref}
                     className={`group flex flex-col items-center gap-1.5 px-5 py-2.5 min-w-fit transition-all duration-300 relative ${
-                      isActive ? "bg-ag-bg-alt" : "hover:bg-ag-bg-alt"
+                      isActive ? "bg-black/5" : "hover:bg-black/5"
                     }`}
                   >
-                    <div className={`${isActive ? "text-ag-primary" : "text-ag-text-muted"} group-hover:text-ag-primary transition-colors`}>
+                    <div className={`${isActive ? "text-ag-primary" : "text-black/60"} group-hover:text-ag-primary transition-colors`}>
                       <CategoryIcon name={cat.label} iconSvg={cat.iconSvg} />
                     </div>
                     <span className={`text-[11px] font-body transition-colors whitespace-nowrap tracking-wide ${
-                      isActive ? "text-ag-primary font-bold" : "text-ag-text-muted"
-                    } group-hover:text-ag-primary`}>
+                      isActive ? "text-ag-primary font-extrabold" : "text-black/80 font-bold"
+                    } group-hover:text-ag-primary uppercase`}>
                       {cat.label}
                     </span>
                     <span className={`absolute bottom-0 left-0 right-0 h-[3px] bg-ag-primary transition-transform duration-300 origin-center ${
@@ -244,29 +244,54 @@ export default function Navbar() {
                  );
                })}
             </div>
+
+            {/* Mobile View: 3 per row Grid - High Contrast Dark Text */}
+            <div className="md:hidden grid grid-cols-3 gap-y-6 py-5 px-2">
+              {categories.map((cat, i) => {
+                 const catHref = cat.href || `/${cat.label.toLowerCase().replace(/\s+/g, "-")}`;
+                 const isActive = pathname === catHref;
+                 
+                 return (
+                  <Link
+                    key={cat.label}
+                    href={catHref}
+                    className={`flex flex-col items-center gap-2.5 transition-all duration-300 ${
+                      isActive ? "text-ag-primary" : "text-black"
+                    }`}
+                  >
+                    <div className="p-2 rounded-xl bg-black/5 border border-black/5 group-active:scale-95 transition-transform text-black">
+                      <CategoryIcon name={cat.label} iconSvg={cat.iconSvg} />
+                    </div>
+                    <span className="text-[10px] font-body text-center leading-tight uppercase tracking-wider font-extrabold text-black">
+                      {cat.label}
+                    </span>
+                  </Link>
+                 );
+               })}
+            </div>
           </div>
         </div>
       )}
 
-      {/* Ticker / Announcement */}
+      {/* Ticker / Announcement - Enabled on Mobile */}
       {(!settings || settings.showTicker) && (
-        <div className="hidden md:flex bg-ag-primary text-white items-center h-10 overflow-hidden border-t-[3px] border-ag-gold w-full">
+        <div className="flex bg-ag-primary text-white items-center h-10 overflow-hidden border-t-[3px] border-ag-gold w-full shadow-lg">
           {/* "LATEST UPDATES" Label with Chevron cutout */}
-          <div className="relative bg-[#F4F5F7] text-ag-primary font-body font-black text-[10px] tracking-widest uppercase px-6 h-full flex items-center shrink-0 z-10 pr-10" style={{ clipPath: "polygon(0 0, calc(100% - 15px) 0, 100% 50%, calc(100% - 15px) 100%, 0 100%)" }}>
-            <div className="flex items-center gap-2">
-              <div className="w-2 h-2 bg-ag-primary rounded-full animate-pulse" />
-              LATEST UPDATES
+          <div className="relative bg-white text-ag-primary font-body font-black text-[9px] sm:text-[10px] tracking-widest uppercase px-4 sm:px-6 h-full flex items-center shrink-0 z-10 pr-8 sm:pr-10" style={{ clipPath: "polygon(0 0, calc(100% - 15px) 0, 100% 50%, calc(100% - 15px) 100%, 0 100%)" }}>
+            <div className="flex items-center gap-1.5 sm:gap-2">
+              <div className="w-1.5 h-1.5 sm:w-2 sm:h-2 bg-ag-primary rounded-full animate-pulse" />
+              LATEST
             </div>
           </div>
 
           {/* Marquee Content */}
           <div className="flex-1 overflow-hidden relative group">
-            <div className="flex whitespace-nowrap animate-marquee hover:[animation-play-state:paused] text-[11px] font-body tracking-[0.05em] uppercase text-white/90">
+            <div className="flex whitespace-nowrap animate-marquee hover:[animation-play-state:paused] text-[10px] sm:text-[11px] font-body tracking-[0.05em] uppercase text-white/95">
               {Array.from({ length: 4 }).map((_, i) => (
                 <div key={i} className="flex items-center">
                   {tickerItems.map((tk, idx) => (
-                    <span key={idx} className="px-8 flex items-center gap-1.5">
-                      {idx > 0 && <span className="w-1.5 h-1.5 rounded-full bg-ag-gold shrink-0"></span>}
+                    <span key={idx} className="px-6 sm:px-8 flex items-center gap-1.5 sm:gap-2">
+                      {idx > 0 && <span className="w-1 h-1 sm:w-1.5 sm:h-1.5 rounded-full bg-ag-gold shrink-0"></span>}
                       {tk.text}
                     </span>
                   ))}
@@ -279,34 +304,19 @@ export default function Navbar() {
 
       {/* Mobile Menu */}
       {isMenuOpen && (
-        <div className="md:hidden bg-white border-t border-ag-border">
+        <div className="md:hidden bg-white border-t border-ag-border fixed inset-x-0 bottom-0 top-[112px] z-[100] overflow-y-auto">
           <div className="p-4 space-y-3">
-            {navLinks.map((link) => (
+            {navLinks.filter(l => l.label.toLowerCase() !== "products").map((link) => (
               <Link
                 key={link.label}
                 href={link.href}
-                className="flex items-center justify-between py-2 border-b border-ag-border text-sm font-body font-medium text-ag-text hover:text-ag-primary"
+                className="flex items-center justify-between py-3 px-4 bg-ag-bg-alt rounded-lg text-[13px] font-body font-bold text-ag-primary uppercase tracking-wider"
                 onClick={() => setIsMenuOpen(false)}
               >
                 {link.label}
                 <ChevronRight size={16} className="text-ag-text-muted" />
               </Link>
             ))}
-            {(!settings || settings.showCategoryBar) && (
-              <div className="pt-3 grid grid-cols-3 gap-3">
-                {categories.map((cat) => (
-                  <Link key={cat.label} href={cat.href || `/${cat.label.toLowerCase().replace(/\s+/g, "-")}`}
-                    className="flex flex-col items-center gap-1 p-2 bg-ag-bg-alt rounded text-ag-text-muted hover:text-ag-primary text-center"
-                    onClick={() => setIsMenuOpen(false)}
-                  >
-                    <div className="w-8 h-8 rounded-full border border-ag-border flex items-center justify-center">
-                      <CategoryIcon name={cat.label} iconSvg={cat.iconSvg} />
-                    </div>
-                    <span className="text-[9px] leading-tight">{cat.label}</span>
-                  </Link>
-                ))}
-              </div>
-            )}
           </div>
         </div>
       )}

@@ -116,7 +116,7 @@ export default function Navbar() {
   }, []);
 
   return (
-    <header className="fixed top-0 left-0 right-0 z-50 bg-ag-bg border-b border-ag-border">
+    <header className="fixed top-0 left-0 right-0 z-50 bg-[#0A0A0A] border-b border-white/5">
       {/* Top Contact Bar */}
       <div className="hidden md:block bg-ag-primary text-white py-1">
         <div className="container-retail flex justify-between items-center text-[10px] sm:text-[11px] font-body tracking-wider">
@@ -157,7 +157,7 @@ export default function Navbar() {
       </div>
 
       {/* Logo + Search + Actions row */}
-      <div className="border-b border-ag-border bg-white h-16 flex items-center shadow-sm">
+      <div className="border-b border-white/5 bg-[#111111] h-16 flex items-center">
         <div className="container-retail flex items-center gap-6 h-full">
           {/* Logo */}
           <Link href="/" className="shrink-0 h-full group flex items-center w-auto max-w-[280px]">
@@ -165,15 +165,15 @@ export default function Navbar() {
           </Link>
           
           {/* Search */}
-          <div className={`flex-1 relative max-w-lg ml-6 transition-all duration-200 ${searchFocused ? "shadow-lg" : ""}`}>
+          <div className={`flex-1 relative max-w-lg md:ml-6 transition-all duration-200 ${searchFocused ? "shadow-[0_0_20px_rgba(255,184,0,0.1)]" : ""}`}>
             <input
               type="text"
               placeholder="Search for surface sports..."
-              className="search-input pl-10 pr-4 py-2 rounded-none border-ag-border text-sm"
+              className="w-full bg-white/5 border border-white/10 text-white placeholder:text-white/30 pl-10 pr-4 py-2 rounded-lg text-sm focus:outline-none focus:border-ag-gold/50 transition-colors"
               onFocus={() => setSearchFocused(true)}
               onBlur={() => setSearchFocused(false)}
             />
-            <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-ag-text-muted" size={16} />
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-white/40" size={16} />
           </div>
 
           {/* Nav links + actions */}
@@ -206,17 +206,18 @@ export default function Navbar() {
           </div>
 
           {/* Mobile menu toggle */}
-          <button className="md:hidden text-ag-text ml-auto" onClick={() => setIsMenuOpen(!isMenuOpen)}>
+          <button className="md:hidden text-white ml-auto p-2" onClick={() => setIsMenuOpen(!isMenuOpen)}>
             {isMenuOpen ? <X size={24} /> : <Menu size={24} />}
           </button>
         </div>
       </div>
 
-      {/* Category Icon Strip */}
+      {/* Category Icon Strip - Updated for mobile & desktop */}
       {(!settings || settings.showCategoryBar) && (
-        <div className="hidden md:block bg-white border-b border-ag-border">
+        <div className="bg-[#1A1A1A] border-b border-white/10">
           <div className="container-retail">
-            <div className="flex items-center justify-between py-3 overflow-x-auto scrollbar-hide gap-2">
+            {/* Desktop View: Horizontal Scroll */}
+            <div className="hidden md:flex items-center justify-between py-3 overflow-x-auto scrollbar-hide gap-2">
                {categories.map((cat, i) => {
                  const catHref = cat.href || `/${cat.label.toLowerCase().replace(/\s+/g, "-")}`;
                  const isActive = pathname === catHref;
@@ -226,20 +227,45 @@ export default function Navbar() {
                     key={cat.label}
                     href={catHref}
                     className={`group flex flex-col items-center gap-1.5 px-5 py-2.5 min-w-fit transition-all duration-300 relative ${
-                      isActive ? "bg-ag-bg-alt" : "hover:bg-ag-bg-alt"
+                      isActive ? "bg-white/5" : "hover:bg-white/5"
                     }`}
                   >
-                    <div className={`${isActive ? "text-ag-primary" : "text-ag-text-muted"} group-hover:text-ag-primary transition-colors`}>
+                    <div className={`${isActive ? "text-ag-gold" : "text-white/60"} group-hover:text-ag-gold transition-colors`}>
                       <CategoryIcon name={cat.label} iconSvg={cat.iconSvg} />
                     </div>
                     <span className={`text-[11px] font-body transition-colors whitespace-nowrap tracking-wide ${
-                      isActive ? "text-ag-primary font-bold" : "text-ag-text-muted"
-                    } group-hover:text-ag-primary`}>
+                      isActive ? "text-ag-gold font-bold" : "text-white/60"
+                    } group-hover:text-ag-gold`}>
                       {cat.label}
                     </span>
-                    <span className={`absolute bottom-0 left-0 right-0 h-[3px] bg-ag-primary transition-transform duration-300 origin-center ${
+                    <span className={`absolute bottom-0 left-0 right-0 h-[3px] bg-ag-gold transition-transform duration-300 origin-center ${
                       isActive ? "scale-x-100" : "scale-x-0 group-hover:scale-x-100"
                     }`} />
+                  </Link>
+                 );
+               })}
+            </div>
+
+            {/* Mobile View: 3 per row Grid - Optimized for space */}
+            <div className="md:hidden grid grid-cols-3 gap-y-3 py-3 border-t border-white/5">
+              {categories.map((cat, i) => {
+                 const catHref = cat.href || `/${cat.label.toLowerCase().replace(/\s+/g, "-")}`;
+                 const isActive = pathname === catHref;
+                 
+                 return (
+                  <Link
+                    key={cat.label}
+                    href={catHref}
+                    className={`flex flex-col items-center gap-1 transition-all duration-300 ${
+                      isActive ? "text-ag-gold" : "text-white/60"
+                    }`}
+                  >
+                    <div className="p-1.5 rounded-lg bg-white/5 border border-white/10 group-active:scale-95 transition-transform">
+                      <CategoryIcon name={cat.label} iconSvg={cat.iconSvg} />
+                    </div>
+                    <span className="text-[8px] font-body text-center leading-tight uppercase tracking-wider font-semibold">
+                      {cat.label}
+                    </span>
                   </Link>
                  );
                })}
@@ -248,28 +274,28 @@ export default function Navbar() {
         </div>
       )}
 
-      {/* Ticker / Announcement */}
+      {/* Ticker / Announcement - Enabled on Mobile with Dark Theme */}
       {(!settings || settings.showTicker) && (
-        <div className="hidden md:flex bg-ag-primary text-white items-center h-10 overflow-hidden border-t-[3px] border-ag-gold w-full">
-          {/* "LATEST UPDATES" Label with Chevron cutout */}
-          <div className="relative bg-[#F4F5F7] text-ag-primary font-body font-black text-[10px] tracking-widest uppercase px-6 h-full flex items-center shrink-0 z-10 pr-10" style={{ clipPath: "polygon(0 0, calc(100% - 15px) 0, 100% 50%, calc(100% - 15px) 100%, 0 100%)" }}>
-            <div className="flex items-center gap-2">
-              <div className="w-2 h-2 bg-ag-primary rounded-full animate-pulse" />
-              LATEST UPDATES
+        <div className="flex bg-black text-white items-center h-10 overflow-hidden border-t border-white/10 w-full">
+          {/* Label with Diamond cutout for premium feel */}
+          <div className="relative bg-ag-gold text-ag-primary font-body font-black text-[9px] tracking-widest uppercase px-4 h-full flex items-center shrink-0 z-10 pr-8" style={{ clipPath: "polygon(0 0, calc(100% - 12px) 0, 100% 50%, calc(100% - 12px) 100%, 0 100%)" }}>
+            <div className="flex items-center gap-1.5">
+              <div className="w-1.5 h-1.5 bg-ag-primary rounded-full animate-pulse" />
+              LATEST
             </div>
           </div>
 
           {/* Marquee Content */}
           <div className="flex-1 overflow-hidden relative group">
-            <div className="flex whitespace-nowrap animate-marquee hover:[animation-play-state:paused] text-[11px] font-body tracking-[0.05em] uppercase text-white/90">
+            <div className="flex whitespace-nowrap animate-marquee hover:[animation-play-state:paused] text-[10px] sm:text-[11px] font-body tracking-[0.05em] uppercase text-white/80">
               {Array.from({ length: 4 }).map((_, i) => (
                 <div key={i} className="flex items-center">
                   {tickerItems.map((tk, idx) => (
-                    <span key={idx} className="px-8 flex items-center gap-1.5">
-                      {idx > 0 && <span className="w-1.5 h-1.5 rounded-full bg-ag-gold shrink-0"></span>}
+                    <span key={idx} className="px-6 flex items-center gap-1.5">
+                      {idx > 0 && <span className="w-1 rounded-full bg-ag-gold shrink-0"></span>}
                       {tk.text}
                     </span>
-                  ))}
+                   ))}
                 </div>
               ))}
             </div>
@@ -277,36 +303,41 @@ export default function Navbar() {
         </div>
       )}
 
-      {/* Mobile Menu */}
+      {/* Mobile Menu Toggled view (Drawer) */}
       {isMenuOpen && (
-        <div className="md:hidden bg-white border-t border-ag-border">
-          <div className="p-4 space-y-3">
-            {navLinks.map((link) => (
-              <Link
-                key={link.label}
-                href={link.href}
-                className="flex items-center justify-between py-2 border-b border-ag-border text-sm font-body font-medium text-ag-text hover:text-ag-primary"
-                onClick={() => setIsMenuOpen(false)}
-              >
-                {link.label}
-                <ChevronRight size={16} className="text-ag-text-muted" />
-              </Link>
-            ))}
-            {(!settings || settings.showCategoryBar) && (
-              <div className="pt-3 grid grid-cols-3 gap-3">
-                {categories.map((cat) => (
-                  <Link key={cat.label} href={cat.href || `/${cat.label.toLowerCase().replace(/\s+/g, "-")}`}
-                    className="flex flex-col items-center gap-1 p-2 bg-ag-bg-alt rounded text-ag-text-muted hover:text-ag-primary text-center"
-                    onClick={() => setIsMenuOpen(false)}
-                  >
-                    <div className="w-8 h-8 rounded-full border border-ag-border flex items-center justify-center">
-                      <CategoryIcon name={cat.label} iconSvg={cat.iconSvg} />
-                    </div>
-                    <span className="text-[9px] leading-tight">{cat.label}</span>
-                  </Link>
-                ))}
+        <div className="md:hidden bg-[#1A1A1A] border-t border-white/10 fixed inset-x-0 top-[112px] bottom-0 z-[100] overflow-y-auto">
+          <div className="p-6 space-y-4">
+            <div className="grid grid-cols-1 gap-2">
+              {navLinks.map((link) => (
+                <Link
+                  key={link.label}
+                  href={link.href}
+                  className="flex items-center justify-between p-4 bg-white/5 rounded-xl border border-white/10 text-sm font-body font-medium text-white/90 hover:text-ag-gold transition-colors"
+                  onClick={() => setIsMenuOpen(false)}
+                >
+                  {link.label}
+                  <ChevronRight size={16} className="text-white/40" />
+                </Link>
+              ))}
+            </div>
+            
+            <div className="pt-6 border-t border-white/10">
+              <p className="text-[10px] font-bold text-white/40 uppercase tracking-[0.2em] mb-4">Quick Actions</p>
+              <div className="grid grid-cols-2 gap-3">
+                <Link href="/login" className="flex flex-col items-center justify-center p-4 bg-white/5 rounded-xl border border-white/10 text-white/90" onClick={() => setIsMenuOpen(false)}>
+                  <User size={20} className="mb-2 text-ag-gold" />
+                  <span className="text-[10px] font-bold uppercase tracking-wider">Account</span>
+                </Link>
+                <Link href="/quote" className="flex flex-col items-center justify-center p-4 bg-ag-gold rounded-xl text-ag-primary" onClick={() => setIsMenuOpen(false)}>
+                  <ShoppingBag size={20} className="mb-2" />
+                  <span className="text-[10px] font-bold uppercase tracking-wider">Get Quote</span>
+                </Link>
               </div>
-            )}
+            </div>
+
+            <div className="pt-8 text-center">
+              <p className="text-white/40 text-[10px]">© 2026 SportSurf Infrastructure. All Rights Reserved.</p>
+            </div>
           </div>
         </div>
       )}

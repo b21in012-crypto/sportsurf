@@ -7,7 +7,7 @@ import { Search, ShoppingBag, User, Menu, X, ChevronRight, Mail, Phone, Facebook
 
 // Flat SVG icons for each category...
 const CategoryIcon = ({ name, iconSvg, navbarIconUrl }: { name: string; iconSvg?: string; navbarIconUrl?: string }) => {
-  const iconClass = "w-8 h-8 object-contain";
+  const iconClass = "w-10 h-10 object-contain group-hover:scale-110 transition-transform duration-300";
 
   if (iconSvg) {
     return <div className={iconClass} dangerouslySetInnerHTML={{ __html: iconSvg }} />;

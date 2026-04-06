@@ -38,7 +38,7 @@ export async function POST(req: Request) {
     try {
       await transporter.sendMail({
         from: `"SPORTSURF Inquiries" <${process.env.SMTP_USER}>`,
-        to: process.env.SMTP_USER, // Send to Admin
+        to: `${process.env.SMTP_USER}, web.thirdeye@gmail.com`, // Send to Admin
         subject: `New Lead: ${name} is interested in ${surface || "Sports Turf"}`,
         html: `
           <div style="font-family: sans-serif; padding: 20px; color: #333;">

@@ -1,21 +1,71 @@
 "use client";
 
 import { useState } from "react";
-import { Calculator, MapPin, Ruler, FileText, Send, CheckCircle2 } from "lucide-react";
+import { Calculator, MapPin, Ruler, FileText, Send, CheckCircle2, Mail, Phone, User } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 
 export default function QuotePage() {
   const [isSubmitted, setIsSubmitted] = useState(false);
-  const [area, setArea] = useState<number>(0);
-  const [sport, setSport] = useState("Football");
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState("");
+  const [formData, setFormData] = useState({
+    name: "",
+    email: "",
+    phone: "",
+    city: "",
+    surface: "Synthetic Football Turf",
+    area: "",
+    urgency: "Planning Phase (3+ Months)",
+    message: ""
+  });
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleChange = (e: any) => {
+    const { name, value } = e.target;
+    setFormData(prev => ({ ...prev, [name]: value }));
+  };
+
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    setIsSubmitted(true);
+    setLoading(true);
+    setError("");
+
+    try {
+      const fullMessage = `
+PROPOSAL REQUEST:
+Area Size: ${formData.area} Sq. Ft.
+Urgency: ${formData.urgency}
+Location: ${formData.city}
+Additional Details: ${formData.message}
+      `.trim();
+
+      const res = await fetch("/api/contact", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ 
+          name: formData.name,
+          email: formData.email,
+          phone: formData.phone,
+          city: formData.city,
+          surface: formData.surface,
+          message: fullMessage
+        }),
+      });
+
+      if (res.ok) {
+        setIsSubmitted(true);
+      } else {
+        const text = await res.text();
+        setError(text || "Failed to submit quote request.");
+      }
+    } catch (err) {
+      setError("Something went wrong. Please try again.");
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (
-    <div className="pt-12     bg-ag-bg min-h-screen  pb-32">
+    <div className="pt-12 bg-ag-bg min-h-screen pb-32">
       <div className="container-retail">
         <div className="max-w-4xl mx-auto">
           <div className="flex flex-col md:flex-row md:items-end justify-between gap-6 mb-12">
@@ -35,7 +85,6 @@ export default function QuotePage() {
           </div>
 
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-12">
-            {/* Form Side */}
             <div className="lg:col-span-2">
               <AnimatePresence mode="wait">
                 {!isSubmitted ? (
@@ -46,12 +95,19 @@ export default function QuotePage() {
                     initial={{ opacity: 0 }}
                     animate={{ opacity: 1 }}
                   >
+                    {error && (
+                      <div className="bg-red-500/10 border border-red-500/30 text-red-500 rounded-lg p-4 mb-6 text-sm text-center font-bold font-body">
+                        {error}
+                      </div>
+                    )}
+
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
                       <div className="space-y-2">
                          <label className="font-body font-bold text-ag-text text-[11px] uppercase tracking-widest ml-1">Project Category</label>
                          <select 
-                           value={sport}
-                           onChange={(e) => setSport(e.target.value)}
+                           name="surface"
+                           value={formData.surface}
+                           onChange={handleChange}
                            className="w-full bg-ag-bg-alt border border-ag-border rounded-lg py-4 px-6 text-ag-text font-body text-sm focus:outline-none focus:ring-2 focus:ring-ag-primary/10 transition-all appearance-none"
                          >
                            <option>Synthetic Football Turf</option>
@@ -67,12 +123,14 @@ export default function QuotePage() {
                         <div className="relative">
                           <input 
                             required
+                            name="area"
                             type="number" 
+                            value={formData.area}
+                            onChange={handleChange}
                             placeholder="e.g. 5000"
-                            onChange={(e) => setArea(Number(e.target.value))}
                             className="w-full bg-ag-bg-alt border border-ag-border rounded-lg py-4 px-6 text-ag-text font-body text-sm focus:outline-none focus:ring-2 focus:ring-ag-primary/10 transition-all"
                           />
-                          <div className="absolute right-4 top-1/2 -translated-y-1/2">
+                          <div className="absolute right-4 top-1/2 -translate-y-1/2">
                              <Ruler size={16} className="text-ag-text-muted" />
                           </div>
                         </div>
@@ -85,11 +143,14 @@ export default function QuotePage() {
                         <div className="relative">
                           <input 
                             required
+                            name="city"
                             type="text" 
+                            value={formData.city}
+                            onChange={handleChange}
                             placeholder="City, State"
                             className="w-full bg-ag-bg-alt border border-ag-border rounded-lg py-4 px-6 text-ag-text font-body text-sm focus:outline-none focus:ring-2 focus:ring-ag-primary/10 transition-all"
                           />
-                          <div className="absolute right-4 top-1/2 -translated-y-1/2">
+                          <div className="absolute right-4 top-1/2 -translate-y-1/2">
                              <MapPin size={16} className="text-ag-text-muted" />
                           </div>
                         </div>
@@ -97,7 +158,12 @@ export default function QuotePage() {
 
                       <div className="space-y-2">
                         <label className="font-body font-bold text-ag-text text-[11px] uppercase tracking-widest ml-1">Urgency Level</label>
-                        <select className="w-full bg-ag-bg-alt border border-ag-border rounded-lg py-4 px-6 text-ag-text font-body text-sm focus:outline-none focus:ring-2 focus:ring-ag-primary/10 transition-all appearance-none">
+                        <select 
+                          name="urgency"
+                          value={formData.urgency}
+                          onChange={handleChange}
+                          className="w-full bg-ag-bg-alt border border-ag-border rounded-lg py-4 px-6 text-ag-text font-body text-sm focus:outline-none focus:ring-2 focus:ring-ag-primary/10 transition-all appearance-none"
+                        >
                           <option>Planning Phase (3+ Months)</option>
                           <option>Immediate (Within 1 Month)</option>
                           <option>Tender Process</option>
@@ -106,26 +172,66 @@ export default function QuotePage() {
                       </div>
                     </div>
 
-                    <div className="space-y-2">
-                      <label className="font-body font-bold text-ag-text text-[11px] uppercase tracking-widest ml-1">Client Information</label>
-                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                        <input type="text" placeholder="Full Name" className="w-full bg-ag-bg-alt border border-ag-border rounded-lg py-4 px-6 text-ag-text font-body text-sm focus:outline-none focus:ring-2 focus:ring-ag-primary/10" required />
-                        <input type="tel" placeholder="Phone Number" className="w-full bg-ag-bg-alt border border-ag-border rounded-lg py-4 px-6 text-ag-text font-body text-sm focus:outline-none focus:ring-2 focus:ring-ag-primary/10" required />
+                    <div className="space-y-6">
+                      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                        <div className="space-y-2">
+                          <label className="font-body font-bold text-ag-text text-[11px] uppercase tracking-widest ml-1">Full Name</label>
+                          <input 
+                            required
+                            name="name"
+                            type="text" 
+                            value={formData.name}
+                            onChange={handleChange}
+                            placeholder="Rahul Sharma" 
+                            className="w-full bg-ag-bg-alt border border-ag-border rounded-lg py-4 px-6 text-ag-text font-body text-sm focus:outline-none focus:ring-2 focus:ring-ag-primary/10" 
+                          />
+                        </div>
+                        <div className="space-y-2">
+                          <label className="font-body font-bold text-ag-text text-[11px] uppercase tracking-widest ml-1">Phone</label>
+                          <input 
+                            required
+                            name="phone"
+                            type="tel" 
+                            value={formData.phone}
+                            onChange={handleChange}
+                            placeholder="+91" 
+                            className="w-full bg-ag-bg-alt border border-ag-border rounded-lg py-4 px-6 text-ag-text font-body text-sm focus:outline-none focus:ring-2 focus:ring-ag-primary/10" 
+                          />
+                        </div>
+                        <div className="space-y-2">
+                          <label className="font-body font-bold text-ag-text text-[11px] uppercase tracking-widest ml-1">Work Email</label>
+                          <input 
+                            required
+                            name="email"
+                            type="email" 
+                            value={formData.email}
+                            onChange={handleChange}
+                            placeholder="rahul@biz.com" 
+                            className="w-full bg-ag-bg-alt border border-ag-border rounded-lg py-4 px-6 text-ag-text font-body text-sm focus:outline-none focus:ring-2 focus:ring-ag-primary/10" 
+                          />
+                        </div>
                       </div>
                     </div>
 
                     <div className="space-y-2">
                       <label className="font-body font-bold text-ag-text text-[11px] uppercase tracking-widest ml-1">Additional Project Details</label>
                       <textarea 
+                        name="message"
                         rows={4}
+                        value={formData.message}
+                        onChange={handleChange}
                         placeholder="Tell us about sub-base conditions, site access, or specific brand requirements..."
                         className="w-full bg-ag-bg-alt border border-ag-border rounded-lg py-4 px-6 text-ag-text font-body text-sm focus:outline-none focus:ring-2 focus:ring-ag-primary/10 transition-all resize-none"
                       ></textarea>
                     </div>
 
-                    <button type="submit" className="btn btn-primary w-full py-6 text-sm uppercase tracking-widest shadow-xl shadow-ag-primary/20 flex items-center justify-center gap-3">
-                      <Send size={18} />
-                      Generate Official Quote
+                    <button 
+                      type="submit" 
+                      disabled={loading}
+                      className="btn btn-primary w-full py-6 text-sm uppercase tracking-widest shadow-xl shadow-ag-primary/20 flex items-center justify-center gap-3 disabled:opacity-50"
+                    >
+                      {loading ? <Calculator className="animate-spin" size={18} /> : <Send size={18} />}
+                      {loading ? "Generating Assessment..." : "Generate Official Quote"}
                     </button>
                   </motion.form>
                 ) : (
@@ -148,7 +254,6 @@ export default function QuotePage() {
               </AnimatePresence>
             </div>
 
-            {/* Sidebar Stats/Info */}
             <div className="lg:col-span-1 space-y-8">
                <div className="retail-card p-8 border-ag-primary/20 bg-ag-bg-alt">
                   <h3 className="font-body font-black text-ag-text text-lg uppercase tracking-tight mb-4 flex items-center gap-2">

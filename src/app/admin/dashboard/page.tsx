@@ -457,6 +457,13 @@ export default function AdminDashboard() {
 
   async function saveCategory() {
     const isEdit = !!formData.id;
+    
+    // Explicitly require icon for new categories as requested
+    if (!isEdit && !formData.navbarIconUrl) {
+      showToast("Please upload a category icon (Navbar Icon) before saving.", "error");
+      return;
+    }
+
     const url = isEdit ? `/api/admin/categories/${formData.id}` : "/api/admin/categories";
     const method = isEdit ? "PUT" : "POST";
     const body = { 
@@ -474,8 +481,14 @@ export default function AdminDashboard() {
       collabCtaLink: formData.collabCtaLink,
       logoUrl: formData.logoUrl,
       collabBackgroundColor: formData.collabBackgroundColor,
-      collabTextColor: formData.collabTextColor
+      collabTextColor: formData.collabTextColor,
+      // Include hero layout fields
+      imageUrl2: formData.imageUrl2,
+      imageLabel2: formData.imageLabel2,
+      imageUrl3: formData.imageUrl3,
+      imageLabel3: formData.imageLabel3
     };
+    
     const res = await fetch(url, { method, headers: { "Content-Type": "application/json" }, body: JSON.stringify(body) });
     if (res.ok) {
       const c = await fetchData("/api/admin/categories");

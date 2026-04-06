@@ -6,11 +6,15 @@ import { usePathname, useRouter } from "next/navigation";
 import { Search, ShoppingBag, User, Menu, X, ChevronRight, Mail, Phone, Facebook, Twitter, Youtube, Instagram, Linkedin } from "lucide-react";
 
 // Flat SVG icons for each category...
-const CategoryIcon = ({ name, iconSvg }: { name: string; iconSvg?: string }) => {
+const CategoryIcon = ({ name, iconSvg, navbarIconUrl }: { name: string; iconSvg?: string; navbarIconUrl?: string }) => {
   const iconClass = "w-8 h-8 object-contain";
 
   if (iconSvg) {
     return <div className={iconClass} dangerouslySetInnerHTML={{ __html: iconSvg }} />;
+  }
+
+  if (navbarIconUrl) {
+    return <img src={navbarIconUrl} alt={name} className={iconClass} />;
   }
 
   const icons: Record<string, JSX.Element> = {
@@ -55,7 +59,7 @@ const CategoryIcon = ({ name, iconSvg }: { name: string; iconSvg?: string }) => 
         <path d="M5 21h14" />
       </svg>
     ),
-    "Adventure sports games": (
+    "Adventure sports": (
       <svg viewBox="0 0 24 24" fill="none" className={iconClass} stroke="currentColor" strokeWidth={1.5}>
         <path d="M3 17l4-8 5 5 4-9 5 12" />
         <circle cx="19" cy="5" r="2" />
@@ -270,7 +274,7 @@ export default function Navbar() {
                     }`}
                   >
                     <div className={`${isActive ? "text-ag-primary" : "text-black/60"} group-hover:text-ag-primary transition-colors`}>
-                      <CategoryIcon name={cat.label} iconSvg={cat.iconSvg} />
+                      <CategoryIcon name={cat.label} iconSvg={cat.iconSvg} navbarIconUrl={cat.navbarIconUrl} />
                     </div>
                     <span className={`text-[11px] font-body transition-colors whitespace-nowrap tracking-wide ${
                       isActive ? "text-ag-primary font-extrabold" : "text-black/80 font-bold"
@@ -300,7 +304,7 @@ export default function Navbar() {
                     }`}
                   >
                     <div className="p-2 rounded-xl bg-black/5 border border-black/5 group-active:scale-95 transition-transform text-black">
-                      <CategoryIcon name={cat.label} iconSvg={cat.iconSvg} />
+                      <CategoryIcon name={cat.label} iconSvg={cat.iconSvg} navbarIconUrl={cat.navbarIconUrl} />
                     </div>
                     <span className="text-[10px] font-body text-center leading-tight uppercase tracking-wider font-extrabold text-black">
                       {cat.label}

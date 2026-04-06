@@ -10,11 +10,13 @@ async function checkAdmin() {
 
 export async function GET() {
   try {
-    const collabs = await (prisma as any).collaboration.findMany({
-      orderBy: { order: "asc" }
+    const collabs = await prisma.collaboration.findMany({
+      orderBy: { order: "asc" },
+      include: { category: true }
     });
     return NextResponse.json(collabs);
-  } catch (err) {
+  } catch (err: any) {
+    console.error("GET Collaborations Error:", err);
     return NextResponse.json({ error: "Failed to fetch collaborations" }, { status: 500 });
   }
 }
@@ -22,20 +24,28 @@ export async function GET() {
 export async function POST(req: Request) {
   if (!(await checkAdmin())) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   try {
-    const { name, imageUrl, description, href, categoryId, isGlobal, order } = await req.json();
-    const item = await (prisma as any).collaboration.create({
+    const body = await req.json();
+    const { name, imageUrl, description, href, categoryId, isGlobal, order } = body;
+    
+    if (!name || !imageUrl) {
+      return NextResponse.json({ error: "Partner name and logo are required" }, { status: 400 });
+    }
+
+    const item = await prisma.collaboration.create({
       data: {
         name,
         imageUrl,
-        description,
-        href,
+        description: description || null,
+        href: href || null,
         categoryId: categoryId || null,
         isGlobal: isGlobal ?? true,
-        order: parseInt(order) || 0
+        order: Number(order) || 0
       }
     });
+
     return NextResponse.json(item);
   } catch (err: any) {
-    return NextResponse.json({ error: err.message || "Error creating" }, { status: 500 });
+    console.error("POST Collaboration Error:", err);
+    return NextResponse.json({ error: err.message || "Error creating partnership" }, { status: 500 });
   }
 }

@@ -11,32 +11,36 @@ async function checkAdmin() {
 export async function PUT(req: Request, { params }: { params: { id: string } }) {
   if (!(await checkAdmin())) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   try {
-    const data = await req.json();
-    const { name, imageUrl, description, href, categoryId, isGlobal, order } = data;
-    const item = await (prisma as any).collaboration.update({
+    const body = await req.json();
+    const { name, imageUrl, description, href, categoryId, isGlobal, order } = body;
+
+    const item = await prisma.collaboration.update({
       where: { id: params.id },
       data: {
         name,
         imageUrl,
-        description,
-        href,
+        description: description || null,
+        href: href || null,
         categoryId: categoryId || null,
         isGlobal: isGlobal ?? true,
-        order: parseInt(order) || 0
+        order: Number(order) || 0
       }
     });
+
     return NextResponse.json(item);
   } catch (err: any) {
-    return NextResponse.json({ error: err.message || "Error updating" }, { status: 500 });
+    console.error("PUT Collaboration Error:", err);
+    return NextResponse.json({ error: err.message || "Error updating partnership" }, { status: 500 });
   }
 }
 
 export async function DELETE(req: Request, { params }: { params: { id: string } }) {
   if (!(await checkAdmin())) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   try {
-    const item = await (prisma as any).collaboration.delete({ where: { id: params.id } });
+    const item = await prisma.collaboration.delete({ where: { id: params.id } });
     return NextResponse.json(item);
   } catch (err: any) {
-    return NextResponse.json({ error: err.message || "Error deleting" }, { status: 500 });
+    console.error("DELETE Collaboration Error:", err);
+    return NextResponse.json({ error: err.message || "Error deleting partnership" }, { status: 500 });
   }
 }

@@ -698,16 +698,36 @@ export default function AdminDashboard() {
   }
 
   async function saveCollaboration() {
+    if (!formData.name || !formData.imageUrl) {
+      showToast("Partner name and logo are required", "error");
+      return;
+    }
+
     const isEdit = !!formData.id;
     const url = isEdit ? `/api/admin/collaborations/${formData.id}` : "/api/admin/collaborations";
     const method = isEdit ? "PUT" : "POST";
-    const res = await fetch(url, { method, headers: { "Content-Type": "application/json" }, body: JSON.stringify(formData) });
+    
+    // Sanitize to avoid Prisma errors with stale fields
+    const { id, createdAt, updatedAt, category, ...rest } = formData;
+    const res = await fetch(url, { 
+      method, 
+      headers: { "Content-Type": "application/json" }, 
+      body: JSON.stringify(isEdit ? rest : { ...rest, id: undefined }) 
+    });
+
     if (res.ok) {
       const cl = await fetchData("/api/admin/collaborations");
       if (cl) setCollaborations(cl);
       setModal(null);
       showToast(isEdit ? "Collaboration updated!" : "Collaboration added!");
-    } else showToast("Failed to save collaboration", "error");
+    } else {
+      try {
+        const err = await res.json();
+        showToast(err.error || "Failed to save collaboration", "error");
+      } catch (e) {
+        showToast("Server error saving collaboration. Please try again.", "error");
+      }
+    }
   }
 
   async function deleteCollaboration(id: string) {

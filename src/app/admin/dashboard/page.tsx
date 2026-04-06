@@ -115,6 +115,12 @@ interface SiteSettings {
   officeHours?: string;
   whatsappNumber?: string;
   serviceArea?: string;
+  facebookLink?: string;
+  twitterLink?: string;
+  instagramLink?: string;
+  linkedinLink?: string;
+  youtubeLink?: string;
+  pinterestLink?: string;
 }
 
 function slugify(text: string | undefined): string {
@@ -2072,6 +2078,22 @@ export default function AdminDashboard() {
                 <Field label="Address" name="address" value={settings.address || ""} onChange={e => setSettings(s => ({ ...s, address: e.target.value }))} textarea />
               </div>
 
+              <div className="border-t border-slate-100 pt-5">
+                <h3 className="text-sm font-bold text-slate-700 uppercase tracking-wider mb-3 flex items-center gap-2"><Globe size={14} /> Social Links</h3>
+                <div className="grid grid-cols-2 gap-4">
+                  <Field label="Facebook" name="facebookLink" value={settings.facebookLink || ""} onChange={e => setSettings(s => ({ ...s, facebookLink: e.target.value }))} placeholder="https://facebook.com/..." />
+                  <Field label="Twitter (X)" name="twitterLink" value={settings.twitterLink || ""} onChange={e => setSettings(s => ({ ...s, twitterLink: e.target.value }))} placeholder="https://twitter.com/..." />
+                </div>
+                <div className="grid grid-cols-2 gap-4 mt-4">
+                  <Field label="Instagram" name="instagramLink" value={settings.instagramLink || ""} onChange={e => setSettings(s => ({ ...s, instagramLink: e.target.value }))} placeholder="https://instagram.com/..." />
+                  <Field label="LinkedIn" name="linkedinLink" value={settings.linkedinLink || ""} onChange={e => setSettings(s => ({ ...s, linkedinLink: e.target.value }))} placeholder="https://linkedin.com/..." />
+                </div>
+                <div className="grid grid-cols-2 gap-4 mt-4">
+                  <Field label="YouTube" name="youtubeLink" value={settings.youtubeLink || ""} onChange={e => setSettings(s => ({ ...s, youtubeLink: e.target.value }))} placeholder="https://youtube.com/..." />
+                  <Field label="Pinterest" name="pinterestLink" value={settings.pinterestLink || ""} onChange={e => setSettings(s => ({ ...s, pinterestLink: e.target.value }))} placeholder="https://pinterest.com/..." />
+                </div>
+              </div>
+
               <button onClick={saveSettings} className="flex items-center gap-2 bg-amber-500 hover:bg-amber-400 text-white px-5 py-2.5 rounded-xl text-sm font-bold transition">
                 <Save size={16} /> Save Settings
               </button>
@@ -2421,6 +2443,7 @@ export default function AdminDashboard() {
                 <Field label="Description" name="description" value={formData.description || ""} onChange={handleFormChange} textarea />
                 <ImageUpload label="Header Background Image" value={formData.imageUrl || ""} onChange={(v) => setFormData(p => ({ ...p, imageUrl: v }))} />
                 <Field label="Routing Page URL" name="href" value={formData.href || ""} onChange={handleFormChange} />
+                <ImageUpload label="Page Custom Logo (Leave blank for global)" value={formData.logoUrl || ""} onChange={(v) => setFormData(p => ({ ...p, logoUrl: v }))} />
                 <Field label="Display Order" name="order" value={formData.order || 0} onChange={handleFormChange} type="number" />
             </div>
 
@@ -2434,6 +2457,22 @@ export default function AdminDashboard() {
                 </div>
                 <Field label="Main Header" name="collabSubtitle" value={formData.collabSubtitle || ""} onChange={handleFormChange} />
                 <Field label="Short Description" name="collabDescription" value={formData.collabDescription || ""} onChange={handleFormChange} textarea />
+                <div className="grid grid-cols-2 gap-4">
+                  <div>
+                    <label className="block text-xs font-semibold text-amber-600 uppercase tracking-wide mb-1.5">Block Background</label>
+                    <div className="flex items-center gap-2">
+                       <input type="color" value={formData.collabBackgroundColor || "#0f172a"} onChange={e => setFormData(p => ({ ...p, collabBackgroundColor: e.target.value }))} className="w-10 h-10 rounded-lg border border-amber-200 cursor-pointer" />
+                       <input type="text" value={formData.collabBackgroundColor || "#0f172a"} onChange={handleFormChange} name="collabBackgroundColor" className="flex-1 border border-amber-200 rounded-xl px-3 py-2 text-sm font-mono bg-white" />
+                    </div>
+                  </div>
+                  <div>
+                    <label className="block text-xs font-semibold text-amber-600 uppercase tracking-wide mb-1.5">Block Text Color</label>
+                    <div className="flex items-center gap-2">
+                       <input type="color" value={formData.collabTextColor || "#ffffff"} onChange={e => setFormData(p => ({ ...p, collabTextColor: e.target.value }))} className="w-10 h-10 rounded-lg border border-amber-200 cursor-pointer" />
+                       <input type="text" value={formData.collabTextColor || "#ffffff"} onChange={handleFormChange} name="collabTextColor" className="flex-1 border border-amber-200 rounded-xl px-3 py-2 text-sm font-mono bg-white" />
+                    </div>
+                  </div>
+                </div>
                 <Field label="CTA Link (href)" name="collabCtaLink" value={formData.collabCtaLink || ""} onChange={handleFormChange} />
             </div>
 

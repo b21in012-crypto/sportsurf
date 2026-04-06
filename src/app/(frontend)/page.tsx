@@ -27,8 +27,16 @@ export default async function Home() {
       prisma.testimonial.findMany({ orderBy: { order: "asc" } }),
       prisma.tickerUpdate.findMany({ orderBy: { order: "asc" } })
     ]);
+
+    // Enhance categories with dynamic product counts
+    categories = await Promise.all((categoriesData || []).map(async (cat) => {
+      const count = await prisma.product.count({
+        where: { category: { equals: cat.label, mode: 'insensitive' } }
+      });
+      return { ...cat, productCount: count };
+    }));
+
     settings = settingsData;
-    categories = categoriesData;
     hero = heroData;
     projects = projectsData;
     testimonials = testimonialsData;
